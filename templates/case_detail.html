@@ -38,7 +38,7 @@
         </button>
       {% else %}
         <input type="hidden" name="status" value="Open">
-        <button type="submit" id="btnReopenCase" class="btn btn-outline-light btn-sm-action text-cyan border-cyan">
+        <button type="submit" id="btnReopenCase" class="btn btn-outline-light btn-sm-action">
           ↺ Reopen Case
         </button>
       {% endif %}
@@ -185,16 +185,16 @@
 
           <!-- Flagged Security Findings Alerts -->
           {% for finding in analysis.findings.findings %}
-            <div class="alert alert-warning mb-3 py-2 px-3 small d-flex align-items-center gap-2" style="background: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.3); color: #fde68a;">
+            <div class="alert alert-warning mb-3 py-2 px-3 small d-flex align-items-center gap-2">
               <span>⚠</span>
               <div><strong>Lead only:</strong> {{ finding.reason }} ({{ finding.events }} matching event(s))</div>
             </div>
           {% endfor %}
 
           <!-- Events Stream -->
-          <div class="events-container font-mono small" id="events-list-{{ analysis.id }}" style="max-height: 280px; overflow-y: auto; background: #0a0f1d; padding: 12px; border-radius: 8px;">
+          <div class="events-container font-mono small" id="events-list-{{ analysis.id }}" style="max-height: 280px; overflow-y: auto; background: #f4f4f2; padding: 12px; border-radius: 8px;">
             {% for event in analysis.findings.events[:25] %}
-              <div class="event-row py-1 d-flex gap-2 align-items-start border-bottom" data-severity="{{ event.severity }}" style="border-color: rgba(255,255,255,0.04)!important;">
+              <div class="event-row py-1 d-flex gap-2 align-items-start border-bottom" data-severity="{{ event.severity }}" style="border-color: #d7d7d2!important;">
                 <span class="badge-status {% if event.severity in ('CRITICAL','ERROR') %}badge-danger{% elif event.severity == 'WARNING' %}badge-warning{% else %}badge-verified{% endif %} py-0 px-2" style="font-size: 0.65rem;">
                   {{ event.severity }}
                 </span>
@@ -262,7 +262,7 @@
                     {% for part in image.results.partitions %}
                       <tr>
                         <td>#{{ part.slot }}</td>
-                        <td class="text-cyan">{{ part.type_name or part.name }}</td>
+                        <td>{{ part.type_name or part.name }}</td>
                         <td class="font-mono text-muted">{{ part.start_lba }}</td>
                         <td class="font-mono text-muted">{{ part.num_sectors }}</td>
                         <td>{{ part.size_formatted }}</td>

@@ -74,7 +74,7 @@
             </div>
           </td>
           <td class="small">
-            <span class="text-cyan font-mono">{{ image.results.scheme if image.results else 'Raw dump' }}</span>
+            <span class="font-mono">{{ image.results.scheme if image.results else 'Raw dump' }}</span>
             {% if image.results and image.results.partitions %}
               <span class="text-muted small">({{ image.results.partitions | length }} parts)</span>
             {% endif %}

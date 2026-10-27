@@ -10,21 +10,20 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     :root {
-      --bg-dark: #070b12;
-      --bg-surface: #0e1524;
-      --bg-panel: #131c2e;
-      --bg-card: #182338;
-      --border: #23324d;
-      --border-focus: #0ea5e9;
-      --text-main: #f1f5f9;
-      --text-muted: #94a3b8;
-      --text-dim: #64748b;
-      --cyan: #06b6d4;
-      --cyan-glow: rgba(6, 182, 212, 0.25);
-      --emerald: #10b981;
-      --amber: #f59e0b;
-      --rose: #f43f5e;
-      --indigo: #6366f1;
+      --bg-dark: #f4f4f2;
+      --bg-surface: #ffffff;
+      --bg-panel: #ffffff;
+      --bg-card: #fafafa;
+      --border: #d7d7d2;
+      --border-focus: #111111;
+      --text-main: #1a1a1a;
+      --text-muted: #666666;
+      --text-dim: #858585;
+      --accent: #111111;
+      --accent-soft: #ededeb;
+      --success: #333333;
+      --warning: #555555;
+      --danger: #222222;
     }
     * { box-sizing: border-box; }
     body {
@@ -39,8 +38,10 @@
     code, pre, .font-mono, .hash {
       font-family: 'JetBrains Mono', monospace !important;
     }
-    a { color: var(--cyan); text-decoration: none; transition: all 0.15s ease; }
-    a:hover { color: #38bdf8; text-decoration: none; }
+    a { color: #111111; text-decoration: none; transition: all 0.15s ease; }
+    a:hover { color: #555555; text-decoration: underline; }
+    .text-white { color: var(--text-main) !important; }
+    .text-slate-300 { color: #4f4f4f !important; }
 
     /* Shell Layout */
     .shell { display: flex; min-height: 100vh; }
@@ -68,7 +69,7 @@
     .brand-icon {
       width: 36px;
       height: 36px;
-      background: linear-gradient(135deg, #0284c7, #06b6d4);
+      background: #111111;
       border-radius: 9px;
       display: flex;
       align-items: center;
@@ -76,12 +77,11 @@
       font-weight: 800;
       font-size: 1.1rem;
       color: #fff;
-      box-shadow: 0 0 15px var(--cyan-glow);
     }
     .brand-title {
       font-weight: 700;
       font-size: 1.05rem;
-      color: #fff;
+      color: var(--text-main);
       letter-spacing: 0.05em;
       line-height: 1.1;
     }
@@ -116,21 +116,20 @@
       transition: all 0.15s ease;
     }
     .nav-link:hover {
-      color: #fff;
-      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-main);
+      background: var(--accent-soft);
       transform: translateX(3px);
     }
     .nav-link.active {
-      color: #fff;
-      background: linear-gradient(90deg, rgba(6, 182, 212, 0.18), rgba(6, 182, 212, 0.05));
-      border-left: 3px solid var(--cyan);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      color: var(--text-main);
+      background: var(--accent-soft);
+      border-left: 3px solid var(--accent);
     }
     .nav-link span {
       font-size: 1rem;
       width: 20px;
       text-align: center;
-      color: var(--cyan);
+      color: var(--accent);
     }
 
     /* Main Content */
@@ -153,13 +152,13 @@
       font-weight: 700;
       letter-spacing: 0.15em;
       text-transform: uppercase;
-      color: var(--cyan);
+      color: var(--accent);
       margin-bottom: 4px;
     }
     .page-title {
       font-size: 1.85rem;
       font-weight: 800;
-      color: #fff;
+      color: var(--text-main);
       letter-spacing: -0.02em;
       margin-bottom: 0;
     }
@@ -172,7 +171,7 @@
       border-radius: 12px;
       padding: 24px;
       margin-bottom: 24px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
     }
     .card-dark {
       background: var(--bg-card);
@@ -188,14 +187,14 @@
       transition: transform 0.2s ease, border-color 0.2s ease;
     }
     .metric:hover {
-      border-color: rgba(6, 182, 212, 0.5);
+      border-color: #111111;
       transform: translateY(-2px);
     }
     .metric strong {
       display: block;
       font-size: 2.2rem;
       font-weight: 800;
-      color: #fff;
+      color: var(--text-main);
       line-height: 1;
       margin-bottom: 6px;
     }
@@ -207,31 +206,29 @@
 
     /* Buttons */
     .btn-primary {
-      background: linear-gradient(135deg, #0284c7, #06b6d4);
+      background: #111111;
       border: none;
-      color: #041019;
+      color: #ffffff;
       font-weight: 700;
       padding: 8px 18px;
       border-radius: 8px;
-      box-shadow: 0 2px 10px var(--cyan-glow);
       transition: all 0.15s ease;
     }
     .btn-primary:hover, .btn-primary:focus {
-      background: linear-gradient(135deg, #0369a1, #0891b2);
+      background: #3a3a3a;
       color: #fff;
-      box-shadow: 0 4px 16px var(--cyan-glow);
       transform: translateY(-1px);
     }
     .btn-outline-light {
       border-color: var(--border);
       color: var(--text-main);
-      background: rgba(255, 255, 255, 0.03);
+      background: #ffffff;
       border-radius: 8px;
     }
     .btn-outline-light:hover {
-      background: rgba(255, 255, 255, 0.08);
-      border-color: var(--text-muted);
-      color: #fff;
+      background: var(--accent-soft);
+      border-color: var(--text-main);
+      color: var(--text-main);
     }
     .btn-sm-action {
       font-size: 0.78rem;
@@ -245,33 +242,33 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      border: 1px solid rgba(6, 182, 212, 0.3);
-      color: #67e8f9;
-      background: rgba(6, 182, 212, 0.1);
+      border: 1px solid #bdbdb8;
+      color: #333333;
+      background: #f1f1ef;
       border-radius: 20px;
       padding: 4px 12px;
       font-size: 0.74rem;
       font-weight: 600;
     }
     .badge-verified {
-      border-color: rgba(16, 185, 129, 0.35);
-      color: #6ee7b7;
-      background: rgba(16, 185, 129, 0.12);
+      border-color: #bdbdb8;
+      color: #222222;
+      background: #eeeeec;
     }
     .badge-danger {
-      border-color: rgba(244, 63, 94, 0.35);
-      color: #fda4af;
-      background: rgba(244, 63, 94, 0.12);
+      border-color: #555555;
+      color: #222222;
+      background: #e2e2df;
     }
     .badge-warning {
-      border-color: rgba(245, 158, 11, 0.35);
-      color: #fde68a;
-      background: rgba(245, 158, 11, 0.12);
+      border-color: #999999;
+      color: #444444;
+      background: #f4f4f2;
     }
     .badge-closed {
-      border-color: rgba(148, 163, 184, 0.35);
-      color: #94a3b8;
-      background: rgba(148, 163, 184, 0.12);
+      border-color: #c8c8c3;
+      color: #777777;
+      background: #f7f7f5;
     }
 
     /* Tables */
@@ -280,7 +277,7 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       overflow: hidden;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
     }
     .table {
       --bs-table-bg: transparent;
@@ -294,7 +291,7 @@
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--text-dim);
-      background: rgba(15, 23, 42, 0.6);
+      background: #f4f4f2;
       padding: 14px 18px;
       border-bottom: 1px solid var(--border);
     }
@@ -304,7 +301,7 @@
       border-bottom: 1px solid var(--border);
     }
     .table tr:last-child td { border-bottom: none; }
-    .table tr:hover td { background: rgba(255, 255, 255, 0.02); }
+    .table tr:hover td {     background: #fafafa; }
 
     /* Form Controls */
     .form-control, .form-select {
@@ -317,8 +314,8 @@
     .form-control:focus, .form-select:focus {
       background: var(--bg-surface);
       color: #fff;
-      border-color: var(--cyan);
-      box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.2);
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.1);
     }
     .form-label {
       font-size: 0.8rem;
@@ -331,24 +328,24 @@
     .hash-badge {
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.75rem;
-      background: rgba(15, 23, 42, 0.8);
+      background: #f4f4f2;
       border: 1px solid var(--border);
       padding: 3px 8px;
       border-radius: 6px;
-      color: #cbd5e1;
+      color: #333333;
       display: inline-flex;
       align-items: center;
       gap: 6px;
     }
     .copy-btn {
       cursor: pointer;
-      color: var(--cyan);
+      color: var(--accent);
       border: none;
       background: transparent;
       padding: 0;
       font-size: 0.72rem;
     }
-    .copy-btn:hover { color: #fff; }
+    .copy-btn:hover { color: #111111; }
 
     /* Activity Stream */
     .activity-item {
@@ -365,11 +362,10 @@
       width: 10px;
       height: 10px;
       border-radius: 50%;
-      background: var(--cyan);
-      box-shadow: 0 0 8px var(--cyan);
+      background: var(--accent);
     }
-    .activity-item.act-warn::before { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
-    .activity-item.act-danger::before { background: var(--rose); box-shadow: 0 0 8px var(--rose); }
+    .activity-item.act-warn::before { background: #777777; }
+    .activity-item.act-danger::before { background: #333333; }
 
     /* Modal Dark */
     .modal-content {
@@ -377,7 +373,7 @@
       border: 1px solid var(--border);
       border-radius: 14px;
       color: var(--text-main);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
     }
     .modal-header, .modal-footer {
       border-color: var(--border);
@@ -385,15 +381,15 @@
 
     /* Alerts */
     .alert-success {
-      background: rgba(16, 185, 129, 0.12);
-      color: #6ee7b7;
-      border: 1px solid rgba(16, 185, 129, 0.3);
+      background: #eeeeec;
+      color: #333333;
+      border: 1px solid #c8c8c3;
       border-radius: 8px;
     }
     .alert-danger {
-      background: rgba(244, 63, 94, 0.12);
-      color: #fda4af;
-      border: 1px solid rgba(244, 63, 94, 0.3);
+      background: #e6e6e3;
+      color: #222222;
+      border: 1px solid #999999;
       border-radius: 8px;
     }
 
@@ -496,10 +492,10 @@
             <button class="btn btn-sm btn-outline-light active" id="btnViewHex" onclick="switchPreviewTab('hex')">Hex View</button>
             <button class="btn btn-sm btn-outline-light" id="btnViewText" onclick="switchPreviewTab('text')">Text View</button>
           </div>
-          <div id="previewHexContainer" class="p-3 font-mono small" style="background:#090d16; overflow-x:auto; max-height:550px;">
+          <div id="previewHexContainer" class="p-3 font-mono small" style="background:#f4f4f2; overflow-x:auto; max-height:550px;">
             <div class="text-muted">Loading hex dump...</div>
           </div>
-          <div id="previewTextContainer" class="p-3 font-mono small d-none" style="background:#090d16; overflow-x:auto; max-height:550px; white-space:pre-wrap;">
+          <div id="previewTextContainer" class="p-3 font-mono small d-none" style="background:#f4f4f2; overflow-x:auto; max-height:550px; white-space:pre-wrap;">
             <div class="text-muted">Loading text preview...</div>
           </div>
         </div>
@@ -585,7 +581,7 @@
           // Build Hex Dump
           let hexHtml = '<table class="table table-borderless table-sm m-0 text-white font-mono" style="font-size:0.78rem;">';
           data.hex_lines.forEach(row => {
-            hexHtml += `<tr><td class="text-secondary pe-3">${row.offset}</td><td class="text-cyan pe-4">${row.hex}</td><td class="text-slate-300">${row.ascii}</td></tr>`;
+            hexHtml += `<tr><td class="text-secondary pe-3">${row.offset}</td><td class="pe-4">${row.hex}</td><td class="text-slate-300">${row.ascii}</td></tr>`;
           });
           hexHtml += '</table>';
           document.getElementById('previewHexContainer').innerHTML = hexHtml;
