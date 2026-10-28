@@ -1,11 +1,17 @@
 {% extends "base.html" %}
-
+{% block title %}404 · Artifact Not Found · DFT{% endblock %}
 {% block content %}
-<div class="panel text-center py-5" style="max-width: 600px; margin: 40px auto;">
-  <div class="brand-icon mx-auto mb-3" style="width: 50px; height: 50px; font-size: 1.5rem;">404</div>
-  <div class="eyebrow">Resource Not Found</div>
-  <h1 class="page-title mb-2">Record does not exist</h1>
-  <p class="muted mb-4">The requested forensic artifact, case identifier, or endpoint could not be found in storage or database records.</p>
-  <a class="btn btn-primary px-4" href="{{ url_for('dashboard') }}">Return to dashboard</a>
+<div class="empty-state" style="max-width: 600px; margin: 40px auto; text-align: left; background: var(--bg-surface); border: 1px solid var(--border-hairline);">
+  <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--ink-muted); font-weight: 700; margin-bottom: 8px;">
+    ERROR 404 · RECORD NOT LOCATED
+  </div>
+  <h2 style="margin-bottom: 12px; font-size: 1.4rem;">Artifact or Resource Not Found</h2>
+  <p style="color: var(--ink-secondary); font-size: 0.9rem; line-height: 1.5; margin-bottom: 20px;">
+    {{ error_message or "The requested case, evidence record, or forensic artifact does not exist in the active database ledger." }}
+  </p>
+  <div style="display: flex; gap: 8px;">
+    <a href="{{ url_for('cases') }}" class="btn btn-primary btn-sm">Return to Cases</a>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-sm">Dashboard</a>
+  </div>
 </div>
 {% endblock %}

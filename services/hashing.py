@@ -33,3 +33,17 @@ def sha256_file(path: str | Path) -> str:
 def hashes_match(path: str | Path, expected: str) -> bool:
     """Verifies whether the file's SHA-256 digest matches the expected hash."""
     return sha256_file(path).lower() == expected.lower().strip()
+
+
+def hash_bytes(data: bytes) -> dict:
+    """Calculates MD5, SHA-1, and SHA-256 digests for raw in-memory bytes."""
+    return {
+        "md5": hashlib.md5(data).hexdigest(),
+        "sha1": hashlib.sha1(data).hexdigest(),
+        "sha256": hashlib.sha256(data).hexdigest(),
+    }
+
+
+def sha256_bytes(data: bytes) -> str:
+    """Calculates the SHA-256 digest of in-memory bytes."""
+    return hashlib.sha256(data).hexdigest()

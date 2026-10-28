@@ -1,92 +1,125 @@
 {% extends "base.html" %}
 
+{% block title %}Disk Images · Digital Forensics Toolkit{% endblock %}
+
 {% block content %}
 <div class="top-bar">
   <div>
-    <div class="eyebrow">Read-only Processing</div>
-    <h1 class="page-title">Disk Images</h1>
-    <p class="muted mb-0">Images are stored with a recorded SHA-256. Analysis performs native MBR/GPT partition inspection.</p>
+    <div class="eyebrow">Bitstream Register</div>
+    <h1 class="page-title">Forensic Disk Images</h1>
+    <p class="muted mb-0">Raw images stored with pre-calculated SHA-256 hashes. Automated parsing of MBR and GPT partition structures.</p>
   </div>
 </div>
 
-<div class="panel mb-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="h5 mb-0 text-white font-monospace">Register Forensic Disk Image</h2>
-    <span class="small text-muted">Supports raw disk dumps (.dd, .img)</span>
+<!-- Upload / Registration Dropzone Panel -->
+<div class="panel" style="margin-bottom: var(--space-xl);">
+  <div style="font-size: 0.92rem; font-weight: 600; margin-bottom: var(--space-md); padding-bottom: var(--space-sm); border-bottom: 1px solid var(--border-hairline);">
+    Intake New Disk Image (.dd, .img)
   </div>
 
-  <form class="row g-3 align-items-end" method="post" enctype="multipart/form-data" action="{{ url_for('disk_image') }}">
+  <form method="post" enctype="multipart/form-data" action="{{ url_for('upload_disk_image') }}" data-dropzone class="dropzone">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="format" value="html">
 
-    <div class="col-md-4">
-      <label class="form-label">Associate with Case</label>
-      <select class="form-select" name="case_id" required>
-        <option value="">Choose a case</option>
-        {% for case in cases %}
-          <option value="{{ case.id }}">{{ case.title }} (Lead: {{ case.investigator }})</option>
-        {% endfor %}
-      </select>
-    </div>
+    <div style="display: grid; grid-template-columns: 280px 1fr auto; gap: 16px; align-items: end; width: 100%;">
+      <div>
+        <label class="form-label" for="diskCaseSelect">Associate with Case</label>
+        <select id="diskCaseSelect" class="form-input" name="case_id" required>
+          <option value="">Select Target Investigation...</option>
+          {% for case in cases %}
+            <option value="{{ case.id }}">#{{ case.id }} · {{ case.title }}</option>
+          {% endfor %}
+        </select>
+      </div>
 
-    <div class="col-md-5">
-      <label class="form-label">Raw Image File (.dd or .img)</label>
-      <input class="form-control" type="file" name="file" accept=".dd,.img" required>
-    </div>
+      <div>
+        <label class="form-label" for="diskFileInput">Forensic Image File (Raw Sector Stream)</label>
+        <input id="diskFileInput" class="form-input" type="file" name="file" accept=".dd,.img" required>
+      </div>
 
-    <div class="col-md-3">
-      <button class="btn btn-primary w-100">Register image</button>
+      <div>
+        <button type="submit" class="btn btn-primary">
+          Examine &amp; Register Image
+        </button>
+      </div>
     </div>
   </form>
 </div>
 
-<div class="table-wrap">
-  <table class="table">
+<!-- Disk Image Registry Table -->
+<div class="table-container">
+  <table class="table-forensic">
     <thead>
       <tr>
-        <th>Image</th>
-        <th>Case</th>
-        <th>SHA-256</th>
-        <th>Partition Scheme</th>
-        <th>Status</th>
+        <th style="width: 60px;">ID</th>
+        <th>Filename &amp; Image Scope</th>
+        <th>Associated Case</th>
+        <th>Cryptographic SHA-256 Baseline</th>
+        <th>Partition Scheme &amp; Partitions</th>
+        <th>Intake Date</th>
+        <th style="text-align: right;">Action</th>
       </tr>
     </thead>
     <tbody>
       {% for image in images %}
         <tr>
+          <td style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--ink-muted);">
+            #{{ image.id }}
+          </td>
           <td>
-            <div class="fw-bold text-white">{{ image.filename }}</div>
-            <div class="small text-muted font-monospace">Record #{{ image.id }} · Registered {{ image.created_at.strftime('%d %b %Y') if image.created_at else '' }}</div>
+            <div style="font-family: var(--font-mono); font-weight: 600; font-size: 0.88rem; color: var(--ink-primary);">
+              {{ image.filename }}
+            </div>
+            <div style="font-size: 0.72rem; color: var(--ink-muted);">
+              Size: {{ image.results.size_formatted if image.results else '—' }}
+            </div>
           </td>
           <td>
             {% if image.case %}
-              <a href="{{ url_for('case_detail', case_id=image.case_id) }}" class="fw-semibold">
+              <a href="{{ url_for('case_detail', case_id=image.case_id) }}" style="font-weight: 500; font-size: 0.82rem;">
                 {{ image.case.title }}
               </a>
             {% else %}
-              —
+              <span style="color: var(--ink-muted);">—</span>
             {% endif %}
           </td>
           <td>
-            <div class="hash-badge">
-              <span class="hash">{{ image.sha256[:12] }}...{{ image.sha256[-8:] }}</span>
-              <button type="button" class="copy-btn" onclick="copyHash('{{ image.sha256 }}', this)">⎘ Copy</button>
+            <div class="hash-block" data-copy-hash="{{ image.sha256 }}" title="Click to copy full SHA-256 hash">
+              <span class="hash-lead">{{ image.sha256[:8] }}</span> {{ image.sha256[8:16] }} {{ image.sha256[16:24] }} ... <span class="hash-lead">{{ image.sha256[-8:] }}</span>
             </div>
           </td>
-          <td class="small">
-            <span class="font-mono">{{ image.results.scheme if image.results else 'Raw dump' }}</span>
+          <td>
+            <span class="badge-forensic badge-info" style="font-size: 0.7rem;">
+              {{ image.results.scheme if image.results else 'Raw dump' }}
+            </span>
             {% if image.results and image.results.partitions %}
-              <span class="text-muted small">({{ image.results.partitions | length }} parts)</span>
+              <span style="font-size: 0.75rem; color: var(--ink-secondary); margin-left: 6px;">
+                ({{ image.results.partitions | length }} partitions)
+              </span>
+            {% endif %}
+            {% if image.warnings %}
+              <span class="badge-forensic badge-high" style="font-size: 0.65rem; margin-left: 4px;" title="{{ image.warnings | join('; ') }}">
+                ⚠ {{ image.warnings | length }} warning(s)
+              </span>
             {% endif %}
           </td>
-          <td>
-            <span class="badge-status">Hash-only</span>
+          <td style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--ink-muted);">
+            {{ image.created_at.strftime('%Y-%m-%d') if image.created_at else '—' }}
+          </td>
+          <td style="text-align: right;">
+            {% if image.case_id %}
+              <a href="{{ url_for('case_detail', case_id=image.case_id) }}#section-disks" class="btn btn-secondary btn-sm">
+                View Geometry →
+              </a>
+            {% endif %}
           </td>
         </tr>
       {% else %}
         <tr>
-          <td colspan="5">
-            <div class="empty">No disk images registered.</div>
+          <td colspan="7" style="text-align: center; padding: 48px 16px;">
+            <div style="color: var(--ink-muted); font-size: 0.9rem;">
+              No forensic disk images registered in repository.
+            </div>
           </td>
         </tr>
       {% endfor %}

@@ -4,6 +4,7 @@ from extensions import db
 
 
 def utcnow():
+    """Returns timezone-aware UTC datetime."""
     return datetime.now(timezone.utc)
 
 
@@ -26,11 +27,21 @@ class Evidence(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     case_id = db.Column(db.Integer, db.ForeignKey("case.id"), nullable=False)
     description = db.Column(db.String(250), nullable=False)
-    source = db.Column(db.Text, nullable=False)
+    source = db.Column(db.Text, nullable=False)  # stored relative to STORAGE_ROOT
     sha256 = db.Column(db.String(64), nullable=False)
     collected_at = db.Column(db.DateTime, default=utcnow, nullable=False)
-    examined_at = db.Column(db.DateTime)
+    examined_at = db.Column(db.DateTime, nullable=True)
+    last_verified_at = db.Column(db.DateTime, nullable=True)
+    last_verified_ok = db.Column(db.Boolean, nullable=True)  # True = verified, False = failed, None = unverified
     investigator = db.Column(db.String(120), nullable=False)
+
+    @property
+    def status_label(self) -> str:
+        if self.last_verified_ok is True:
+            return "Verified"
+        elif self.last_verified_ok is False:
+            return "Integrity failure"
+        return "Not yet verified"
 
 
 class Activity(db.Model):
@@ -53,6 +64,8 @@ class LogAnalysis(db.Model):
 class Report(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     case_id = db.Column(db.Integer, db.ForeignKey("case.id"), nullable=False)
+    report_format = db.Column(db.String(20), default="json", nullable=False)
+    sha256 = db.Column(db.String(64), nullable=True)
     generated_at = db.Column(db.DateTime, default=utcnow, nullable=False)
 
 
@@ -60,8 +73,9 @@ class DiskImage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     case_id = db.Column(db.Integer, db.ForeignKey("case.id"), nullable=True)
     filename = db.Column(db.String(250), nullable=False)
-    source = db.Column(db.Text, nullable=False)
+    source = db.Column(db.Text, nullable=False)  # stored relative to STORAGE_ROOT
     sha256 = db.Column(db.String(64), nullable=False)
     analysis_status = db.Column(db.String(40), nullable=False)
     results_json = db.Column(db.Text, nullable=False, default="{}")
+    warnings_json = db.Column(db.Text, nullable=False, default="[]")
     created_at = db.Column(db.DateTime, default=utcnow, nullable=False)

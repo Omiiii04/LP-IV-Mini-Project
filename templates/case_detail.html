@@ -1,352 +1,493 @@
 {% extends "base.html" %}
 
+{% block title %}Case #{{ case.id }} · {{ case.title }} · Digital Forensics Toolkit{% endblock %}
+
 {% block content %}
-<!-- Case Workspace Header -->
+<!-- Top Header & Actions -->
 <div class="top-bar">
   <div>
-    <div class="eyebrow">Case Workspace · #{{ case.id }}</div>
+    <div class="eyebrow">Case Ledger · Ref #{{ case.id }}</div>
     <h1 class="page-title">{{ case.title }}</h1>
     <p class="muted mb-0">{{ case.description or 'No case description recorded.' }}</p>
   </div>
-  <div class="d-flex flex-wrap align-items-center gap-2">
-    <span class="badge-status {% if case.status == 'Closed' %}badge-closed{% elif case.status in ('In Progress', 'Under Review') %}badge-warning{% endif %}">
-      {{ case.status }}
-    </span>
+  
+  <div style="display: flex; gap: var(--space-sm); align-items: center; flex-wrap: wrap;">
+    <!-- Status Badge -->
+    {% if case.status == 'Open' %}
+      <span class="badge-forensic badge-unverified"><span class="badge-shape">●</span> Open</span>
+    {% elif case.status == 'In Progress' %}
+      <span class="badge-forensic badge-medium"><span class="badge-shape">▲</span> In Progress</span>
+    {% else %}
+      <span class="badge-forensic badge-verified"><span class="badge-shape">✓</span> Closed</span>
+    {% endif %}
 
-    <!-- Interactive Status Selector -->
-    <form method="post" action="{{ url_for('update_case_status', case_id=case.id) }}" class="d-inline-flex gap-2 align-items-center">
+    <!-- Status Change Action Form -->
+    <form method="post" action="{{ url_for('update_case_status', case_id=case.id) }}" style="display: inline-flex; gap: 6px; align-items: center;">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <div class="input-group input-group-sm">
-        <span class="input-group-text bg-dark border-secondary text-muted" style="font-size: 0.72rem;">Status:</span>
-        <select name="status" id="caseStatusSelect" class="form-select form-select-sm" style="font-size: 0.75rem; min-width: 120px;" onchange="this.form.submit()">
-          <option value="Open" {% if case.status == 'Open' %}selected{% endif %}>Open</option>
-          <option value="In Progress" {% if case.status == 'In Progress' %}selected{% endif %}>In Progress</option>
-          <option value="Under Review" {% if case.status == 'Under Review' %}selected{% endif %}>Under Review</option>
-          <option value="Closed" {% if case.status == 'Closed' %}selected{% endif %}>Closed</option>
-          <option value="Archived" {% if case.status == 'Archived' %}selected{% endif %}>Archived</option>
-        </select>
-      </div>
+      <select name="status" class="form-input form-input-sm" style="width: auto; padding: 4px 8px;" data-auto-submit="true" aria-label="Change case status">
+        <option value="Open" {% if case.status == 'Open' %}selected{% endif %}>Status: Open</option>
+        <option value="In Progress" {% if case.status == 'In Progress' %}selected{% endif %}>Status: In Progress</option>
+        <option value="Closed" {% if case.status == 'Closed' %}selected{% endif %}>Status: Closed</option>
+      </select>
     </form>
 
-    <!-- Quick Close / Reopen Toggle Button -->
-    <form method="post" action="{{ url_for('update_case_status', case_id=case.id) }}" class="d-inline">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      {% if case.status != 'Closed' %}
-        <input type="hidden" name="status" value="Closed">
-        <button type="submit" id="btnCloseCase" class="btn btn-outline-light btn-sm-action text-warning border-warning">
-          ✓ Close Case
-        </button>
-      {% else %}
-        <input type="hidden" name="status" value="Open">
-        <button type="submit" id="btnReopenCase" class="btn btn-outline-light btn-sm-action">
-          ↺ Reopen Case
-        </button>
-      {% endif %}
-    </form>
-
-    <a href="{{ url_for('cases') }}" class="btn btn-outline-light btn-sm-action">← All Cases</a>
-  </div>
-</div>
-
-<!-- Case Metadata Info Bar -->
-<div class="panel mb-4">
-  <div class="row g-3">
-    <div class="col-6 col-md-3">
-      <div class="muted small">INVESTIGATOR</div>
-      <div class="fw-bold text-white">{{ case.investigator }}</div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="muted small">CREATED</div>
-      <div class="text-white">{{ case.created_at.strftime('%d %b %Y, %H:%M UTC') }}</div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="muted small">EVIDENCE REGISTER</div>
-      <div class="text-white">{{ case.evidence | length }} registered item(s)</div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="muted small">DISK IMAGES</div>
-      <div class="text-white">{{ case.disk_images | length }} raw image(s)</div>
-    </div>
-  </div>
-</div>
-
-<!-- Section 1: Evidence Vault -->
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h2 class="h5 mb-0 text-white font-monospace">Evidence</h2>
-  <span class="small text-muted">Cryptographic custody register</span>
-</div>
-
-<div class="panel mb-4">
-  <form class="row g-3 align-items-end mb-4" method="post" enctype="multipart/form-data" action="{{ url_for('add_evidence', case_id=case.id) }}">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <div class="col-md-8">
-      <label class="form-label">Register evidence file (txt, log, csv, json, pdf, zip, doc, docx, dd, img)</label>
-      <input class="form-control" type="file" name="file" required>
-    </div>
-    <div class="col-md-4">
-      <button class="btn btn-primary w-100">Register evidence</button>
-    </div>
-  </form>
-
-  {% if case.evidence %}
-    <div class="table-wrap">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Original Filename</th>
-            <th>SHA-256 Digest</th>
-            <th>Collected</th>
-            <th>Status</th>
-            <th class="text-end">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for item in case.evidence %}
-            <tr>
-              <td>
-                <div class="fw-bold text-white">{{ item.description }}</div>
-                <div class="small text-muted font-monospace">ID #{{ item.id }} · Registered by {{ item.investigator }}</div>
-              </td>
-              <td>
-                <div class="hash-badge">
-                  <span class="hash">{{ item.sha256[:12] }}...{{ item.sha256[-8:] }}</span>
-                  <button type="button" class="copy-btn" onclick="copyHash('{{ item.sha256 }}', this)" title="Copy full SHA-256">⎘ Copy</button>
-                </div>
-              </td>
-              <td class="muted small">
-                {{ item.collected_at.strftime('%d %b %Y') if item.collected_at else '—' }}
-              </td>
-              <td>
-                <span id="status-badge-{{ item.id }}" class="badge-status">
-                  Registered
-                </span>
-              </td>
-              <td class="text-end">
-                <div class="d-inline-flex gap-2">
-                  <button type="button" class="btn btn-outline-light btn-sm-action" onclick="verifyEvidenceInPlace({{ item.id }}, '{{ csrf_token() }}', this)" title="Recalculate and verify hash without downloading">
-                    Verify
-                  </button>
-                  <button type="button" class="btn btn-outline-light btn-sm-action" onclick="openPreviewModal({{ item.id }})" title="Inspect hex and ASCII bytes">
-                    Preview
-                  </button>
-                  <a class="btn btn-outline-light btn-sm-action" href="{{ url_for('download_evidence', evidence_id=item.id) }}">
-                    Verify & download
-                  </a>
-                </div>
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  {% else %}
-    <div class="empty">
-      <div class="fs-4 mb-2">📁</div>
-      No evidence registered for this case.
-    </div>
-  {% endif %}
-</div>
-
-<!-- Section 2: Log Analysis Engine -->
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h2 class="h5 mb-0 text-white font-monospace">Log analysis</h2>
-  <a href="{{ url_for('logs_index') }}" class="small">All analyses →</a>
-</div>
-
-<div class="panel mb-4">
-  <form class="row g-3 align-items-end mb-4" method="post" enctype="multipart/form-data" action="{{ url_for('add_log', case_id=case.id) }}">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <div class="col-md-8">
-      <label class="form-label">Upload .log, .txt, or .csv for pattern detection</label>
-      <input class="form-control" type="file" name="file" accept=".log,.txt,.csv" required>
-    </div>
-    <div class="col-md-4">
-      <button class="btn btn-primary w-100">Analyze log</button>
-    </div>
-  </form>
-
-  {% if analyses %}
-    <div class="d-flex flex-column gap-4">
-      {% for analysis in analyses %}
-        <div class="card-dark">
-          <div class="d-flex flex-wrap justify-content-between align-items-center pb-2 mb-3 border-bottom" style="border-color: var(--border)!important;">
-            <div>
-              <strong class="text-white fs-6">{{ analysis.filename }}</strong>
-              <div class="small text-muted">{{ analysis.events_processed }} events processed · {{ analysis.flagged_patterns }} flagged lead(s)</div>
-            </div>
-            <!-- Interactive Severity Filter for this log -->
-            <div class="d-flex gap-1" id="filter-bar-{{ analysis.id }}">
-              <button class="btn btn-sm btn-outline-light py-0 px-2" onclick="filterLogEvents({{ analysis.id }}, 'ALL')">All</button>
-              <button class="btn btn-sm btn-outline-light py-0 px-2 text-danger" onclick="filterLogEvents({{ analysis.id }}, 'CRITICAL')">Critical</button>
-              <button class="btn btn-sm btn-outline-light py-0 px-2 text-warning" onclick="filterLogEvents({{ analysis.id }}, 'ERROR')">Error</button>
-              <button class="btn btn-sm btn-outline-light py-0 px-2 text-info" onclick="filterLogEvents({{ analysis.id }}, 'INFO')">Info</button>
-            </div>
-          </div>
-
-          <!-- Flagged Security Findings Alerts -->
-          {% for finding in analysis.findings.findings %}
-            <div class="alert alert-warning mb-3 py-2 px-3 small d-flex align-items-center gap-2">
-              <span>⚠</span>
-              <div><strong>Lead only:</strong> {{ finding.reason }} ({{ finding.events }} matching event(s))</div>
-            </div>
-          {% endfor %}
-
-          <!-- Events Stream -->
-          <div class="events-container font-mono small" id="events-list-{{ analysis.id }}" style="max-height: 280px; overflow-y: auto; background: #f4f4f2; padding: 12px; border-radius: 8px;">
-            {% for event in analysis.findings.events[:25] %}
-              <div class="event-row py-1 d-flex gap-2 align-items-start border-bottom" data-severity="{{ event.severity }}" style="border-color: #d7d7d2!important;">
-                <span class="badge-status {% if event.severity in ('CRITICAL','ERROR') %}badge-danger{% elif event.severity == 'WARNING' %}badge-warning{% else %}badge-verified{% endif %} py-0 px-2" style="font-size: 0.65rem;">
-                  {{ event.severity }}
-                </span>
-                <span class="text-dim pe-2">line {{ event.line }}</span>
-                <span class="text-slate-300" style="word-break: break-all;">{{ event.text }}</span>
-              </div>
-            {% endfor %}
-            {% if analysis.findings.events | length > 25 %}
-              <div class="text-center text-muted small pt-2">
-                ... Showing 25 of {{ analysis.findings.events | length }} total events ...
-              </div>
-            {% endif %}
-          </div>
-        </div>
-      {% endfor %}
-    </div>
-  {% else %}
-    <div class="empty">
-      <div class="fs-4 mb-2">📜</div>
-      No log analyses yet.
-    </div>
-  {% endif %}
-</div>
-
-<!-- Section 3: Disk Images -->
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h2 class="h5 mb-0 text-white font-monospace">Disk images</h2>
-  <a href="{{ url_for('disk_images_index') }}" class="small">Disk image manager →</a>
-</div>
-
-<div class="panel mb-4">
-  {% if case.disk_images %}
-    <div class="d-flex flex-column gap-3">
-      {% for image in case.disk_images %}
-        <div class="card-dark">
-          <div class="d-flex justify-content-between align-items-center pb-2 mb-2 border-bottom" style="border-color: var(--border)!important;">
-            <div>
-              <strong class="text-white">{{ image.filename }}</strong>
-              <div class="small text-muted">{{ image.results.scheme or 'Disk Image' }} · {{ image.results.size_formatted or '' }}</div>
-            </div>
-            <span class="badge-status">Hash-only</span>
-          </div>
-
-          <div class="hash-badge my-2">
-            <span class="hash">{{ image.sha256 }}</span>
-            <button type="button" class="copy-btn" onclick="copyHash('{{ image.sha256 }}', this)">⎘ Copy</button>
-          </div>
-
-          {% if image.results and image.results.partitions %}
-            <div class="mt-3">
-              <div class="small text-muted font-monospace mb-1">PARTITION GEOMETRY:</div>
-              <div class="table-wrap">
-                <table class="table table-sm">
-                  <thead>
-                    <tr>
-                      <th>Slot</th>
-                      <th>Type / Label</th>
-                      <th>Start LBA</th>
-                      <th>Sectors</th>
-                      <th>Size</th>
-                      <th>Bootable</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {% for part in image.results.partitions %}
-                      <tr>
-                        <td>#{{ part.slot }}</td>
-                        <td>{{ part.type_name or part.name }}</td>
-                        <td class="font-mono text-muted">{{ part.start_lba }}</td>
-                        <td class="font-mono text-muted">{{ part.num_sectors }}</td>
-                        <td>{{ part.size_formatted }}</td>
-                        <td>{{ '✓ Yes' if part.bootable else 'No' }}</td>
-                      </tr>
-                    {% endfor %}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          {% endif %}
-        </div>
-      {% endfor %}
-    </div>
-  {% else %}
-    <div class="empty">
-      <div class="fs-4 mb-2">💾</div>
-      No disk images registered. Upload from the Disk Images workspace.
-    </div>
-  {% endif %}
-  <p class="small muted mt-3 mb-0">Disk-image processing is read-only hash verification. Partition and filesystem analysis is not implemented.</p>
-</div>
-
-<!-- Section 4: Activity Stream / Chain of Custody -->
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h2 class="h5 mb-0 text-white font-monospace">Activity</h2>
-  <span class="small text-muted">Chain of custody log</span>
-</div>
-
-<div class="panel mb-4">
-  {% if activities %}
-    <div class="activity-feed">
-      {% for item in activities %}
-        <div class="activity-item {% if 'failure' in item.action_type %}act-danger{% elif 'verified' in item.action_type %}act-verified{% endif %}">
-          <strong class="text-white small">{{ item.action_type | replace('_', ' ') | title }}</strong>
-          <div class="text-muted small my-1 font-monospace" style="word-break: break-all;">
-            {{ item.result | truncate(180) }}
-          </div>
-          <small class="text-dim">{{ item.created_at.strftime('%d %b %Y, %H:%M UTC') }}</small>
-        </div>
-      {% endfor %}
-    </div>
-  {% else %}
-    <div class="empty">
-      <div class="fs-4 mb-2">⏱</div>
-      No activity recorded yet.
-    </div>
-  {% endif %}
-</div>
-
-<!-- Section 5: Reports Export Center -->
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h2 class="h5 mb-0 text-white font-monospace">Reports</h2>
-  <span class="small text-muted">Generate case exports</span>
-</div>
-
-<div class="panel">
-  <div class="d-flex flex-wrap align-items-center gap-3">
-    <a class="btn btn-outline-light" href="{{ url_for('report_json', case_id=case.id) }}">
+    <!-- Report Exports -->
+    <a href="{{ url_for('report_pdf', case_id=case.id) }}" class="btn btn-secondary btn-sm" title="Export signed PDF case report">
+      Export PDF
+    </a>
+    <a href="{{ url_for('report_json', case_id=case.id) }}" class="btn btn-secondary btn-sm" title="Export raw JSON forensic data">
       JSON
     </a>
-    <a class="btn btn-outline-light" href="{{ url_for('report_csv', case_id=case.id) }}">
+    <a href="{{ url_for('report_csv', case_id=case.id) }}" class="btn btn-secondary btn-sm" title="Export CSV artifact ledger">
       CSV
     </a>
-    <a class="btn btn-outline-light" href="{{ url_for('report_pdf', case_id=case.id) }}">
-      PDF
-    </a>
-    <span class="muted small ms-2">Exports include current case records.</span>
+    <button type="button" class="btn btn-secondary btn-sm" data-print-page title="Print formatted case report">
+      Print
+    </button>
   </div>
 </div>
 
-<script>
-  function filterLogEvents(analysisId, severity) {
-    const container = document.getElementById(`events-list-${analysisId}`);
-    if (!container) return;
-    const rows = container.querySelectorAll('.event-row');
-    rows.forEach(row => {
-      const rowSev = row.getAttribute('data-severity');
-      if (severity === 'ALL' || rowSev === severity) {
-        row.classList.remove('d-none');
-      } else {
-        row.classList.add('d-none');
-      }
-    });
-  }
-</script>
+<!-- Metadata Header Strip -->
+<div class="panel" style="margin-bottom: var(--space-xl); padding: 14px 20px;">
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px;">
+    <div>
+      <div style="font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-muted); font-weight: 600;">Lead Investigator</div>
+      <div style="font-weight: 600; color: var(--ink-primary); font-size: 0.9rem; margin-top: 2px;">{{ case.investigator }}</div>
+    </div>
+    <div>
+      <div style="font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-muted); font-weight: 600;">Case Ingestion Date</div>
+      <div style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--ink-secondary); margin-top: 2px;">
+        {{ case.created_at.strftime('%Y-%m-%d %H:%M UTC') if case.created_at else '—' }}
+      </div>
+    </div>
+    <div>
+      <div style="font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-muted); font-weight: 600;">Evidence Items</div>
+      <div style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--ink-secondary); margin-top: 2px;">
+        {{ case.evidence | length }} registered files
+      </div>
+    </div>
+    <div>
+      <div style="font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-muted); font-weight: 600;">Disk Images</div>
+      <div style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--ink-secondary); margin-top: 2px;">
+        {{ case.disk_images | length }} raw bitstreams
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Workspace Layout: Left Rail Navigation + Main Content Panes -->
+<div style="display: grid; grid-template-columns: 220px 1fr; gap: var(--space-xl); align-items: start;">
+
+  <!-- Left Rail Artifacts Index -->
+  <nav class="panel" style="position: sticky; top: 16px; padding: 12px 8px;" aria-label="Case Workspace Subsections">
+    <div style="font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-muted); font-weight: 600; padding: 4px 12px 8px; border-bottom: 1px solid var(--border-hairline); margin-bottom: 8px;">
+      Case Subsections
+    </div>
+    <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px;">
+      <li>
+        <a href="#section-evidence" class="nav-link" style="font-size: 0.82rem; padding: 6px 12px;">
+          <span>Evidence Register ({{ case.evidence | length }})</span>
+        </a>
+      </li>
+      <li>
+        <a href="#section-logs" class="nav-link" style="font-size: 0.82rem; padding: 6px 12px;">
+          <span>Log Analyses ({{ analyses | length }})</span>
+        </a>
+      </li>
+      <li>
+        <a href="#section-disks" class="nav-link" style="font-size: 0.82rem; padding: 6px 12px;">
+          <span>Disk Images ({{ case.disk_images | length }})</span>
+        </a>
+      </li>
+      <li>
+        <a href="#section-custody" class="nav-link" style="font-size: 0.82rem; padding: 6px 12px;">
+          <span>Chain of Custody ({{ activities | length }})</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Main Section Flow -->
+  <div style="display: flex; flex-direction: column; gap: var(--space-2xl);">
+
+    <!-- Section 1: Evidence Register & Intake -->
+    <section id="section-evidence" class="panel" aria-labelledby="evidenceHeading">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md); padding-bottom: var(--space-sm); border-bottom: 1px solid var(--border-hairline);">
+        <div>
+          <h2 id="evidenceHeading" style="font-size: 1rem; font-weight: 600; margin: 0;">Evidence Register</h2>
+          <div style="font-size: 0.75rem; color: var(--ink-muted);">Cryptographic baseline ledger and in-place verification</div>
+        </div>
+      </div>
+
+      <!-- Drag & Drop Evidence Intake Form -->
+      <form class="dropzone" method="post" enctype="multipart/form-data" action="{{ url_for('add_evidence', case_id=case.id) }}" data-dropzone style="margin-bottom: var(--space-lg);">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div style="font-weight: 500; font-size: 0.88rem; margin-bottom: 4px;">
+          Drop evidence files here or click to browse
+        </div>
+        <div style="font-size: 0.75rem; color: var(--ink-muted); margin-bottom: 12px;">
+          Allowed: .txt, .log, .csv, .json, .pdf, .zip, .doc, .docx, .dd, .img (Up to 64 MB)
+        </div>
+        <input type="file" name="file" class="dropzone-file-input" required aria-label="Select evidence file">
+        <button type="submit" class="btn btn-secondary btn-sm" style="margin-top: 8px;">
+          Register Evidence File
+        </button>
+      </form>
+
+      <!-- Evidence Table -->
+      {% if case.evidence %}
+        <div class="table-container">
+          <table class="table-forensic">
+            <thead>
+              <tr>
+                <th style="width: 50px;">ID</th>
+                <th>Filename &amp; Description</th>
+                <th>Cryptographic SHA-256 Digest</th>
+                <th>Custody Status</th>
+                <th>Collected</th>
+                <th style="text-align: right;">Forensic Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in case.evidence %}
+                <tr>
+                  <td style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-muted);">
+                    #{{ item.id }}
+                  </td>
+                  <td>
+                    <div style="font-weight: 600; color: var(--ink-primary); font-size: 0.88rem;">{{ item.description }}</div>
+                    <div style="font-size: 0.72rem; color: var(--ink-muted);">By {{ item.investigator }}</div>
+                  </td>
+                  <td>
+                    <div class="hash-block" data-copy-hash="{{ item.sha256 }}" title="Click to copy full SHA-256 hash">
+                      <span class="hash-lead">{{ item.sha256[:8] }}</span> {{ item.sha256[8:16] }} {{ item.sha256[16:24] }} ... <span class="hash-lead">{{ item.sha256[-8:] }}</span>
+                    </div>
+                  </td>
+                  <td>
+                    {% if item.last_verified_ok is none %}
+                      <span id="status-badge-{{ item.id }}" class="badge-forensic badge-unverified">
+                        <span class="badge-shape">○</span> Not Verified
+                      </span>
+                    {% elif item.last_verified_ok is false %}
+                      <span id="status-badge-{{ item.id }}" class="badge-forensic badge-failed">
+                        <span class="badge-shape">✕</span> Tampered
+                      </span>
+                    {% else %}
+                      <span id="status-badge-{{ item.id }}" class="badge-forensic badge-verified">
+                        <span class="badge-shape">✓</span> Verified
+                      </span>
+                    {% endif %}
+                  </td>
+                  <td style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--ink-muted);">
+                    {{ item.collected_at.strftime('%Y-%m-%d') if item.collected_at else '—' }}
+                  </td>
+                  <td style="text-align: right;">
+                    <div style="display: inline-flex; gap: 4px;">
+                      <button type="button" class="btn btn-secondary btn-sm"
+                              onclick="verifyEvidence({{ item.id }}, '{{ csrf_token() }}', this)"
+                              title="Recalculate SHA-256 against stored baseline">
+                        Verify
+                      </button>
+                      <button type="button" class="btn btn-secondary btn-sm"
+                              onclick="openArtifactPreview({{ item.id }})"
+                              title="Inspect hex dump and text bytes">
+                        Inspect
+                      </button>
+                      <a href="{{ url_for('download_evidence', evidence_id=item.id) }}"
+                         class="btn btn-secondary btn-sm"
+                         title="Verify integrity and download file">
+                        Download
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div style="padding: 32px; text-align: center; color: var(--ink-muted); font-size: 0.85rem;">
+          No evidence items registered yet. Use the intake dropzone above.
+        </div>
+      {% endif %}
+    </section>
+
+    <!-- Section 2: Log Analyses Engine -->
+    <section id="section-logs" class="panel" aria-labelledby="logsHeading">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md); padding-bottom: var(--space-sm); border-bottom: 1px solid var(--border-hairline);">
+        <div>
+          <h2 id="logsHeading" style="font-size: 1rem; font-weight: 600; margin: 0;">Log Detections &amp; Audit</h2>
+          <div style="font-size: 0.75rem; color: var(--ink-muted);">Deterministic rule-based pattern matching: brute force, SQLi, traversal, priv-esc</div>
+        </div>
+      </div>
+
+      <!-- Upload Log Form -->
+      <form class="dropzone" method="post" enctype="multipart/form-data" action="{{ url_for('add_log', case_id=case.id) }}" data-dropzone style="margin-bottom: var(--space-lg);">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div style="font-weight: 500; font-size: 0.88rem; margin-bottom: 4px;">
+          Drop security logs here (.log, .txt, .csv)
+        </div>
+        <div style="font-size: 0.75rem; color: var(--ink-muted); margin-bottom: 12px;">
+          All lines are parsed for ISO/syslog/web timestamps, IP addresses, usernames, and security patterns
+        </div>
+        <input type="file" name="file" class="dropzone-file-input" accept=".log,.txt,.csv" required aria-label="Select log file">
+        <button type="submit" class="btn btn-secondary btn-sm" style="margin-top: 8px;">
+          Analyze Log Stream
+        </button>
+      </form>
+
+      {% if analyses %}
+        <div style="display: flex; flex-direction: column; gap: var(--space-xl);">
+          {% for analysis in analyses %}
+            <div style="border: 1px solid var(--border-hairline); border-radius: var(--radius-md); background: var(--bg-surface); overflow: hidden;">
+              
+              <!-- Analysis Header -->
+              <div style="padding: 12px 16px; background: var(--bg-surface-subtle); border-bottom: 1px solid var(--border-hairline); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                <div>
+                  <strong style="font-family: var(--font-mono); font-size: 0.88rem;">{{ analysis.filename }}</strong>
+                  <div style="font-size: 0.75rem; color: var(--ink-muted); margin-top: 2px;">
+                    {{ analysis.events_processed }} events processed ·
+                    <span style="font-weight: 600; color: {{ 'var(--signal-vermilion)' if analysis.flagged_patterns > 0 else 'var(--ink-secondary)' }};">
+                      {{ analysis.flagged_patterns }} security lead(s) flagged
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Severity Filter Tabs for this log pane -->
+                <div style="display: flex; gap: 4px;" data-log-filters="{{ analysis.id }}">
+                  <button type="button" class="btn btn-sm btn-primary" data-filter-sev="ALL">All</button>
+                  <button type="button" class="btn btn-sm btn-secondary" data-filter-sev="CRITICAL">Critical</button>
+                  <button type="button" class="btn btn-sm btn-secondary" data-filter-sev="WARNING">Warning</button>
+                  <button type="button" class="btn btn-sm btn-secondary" data-filter-sev="ERROR">Error</button>
+                  <button type="button" class="btn btn-sm btn-secondary" data-filter-sev="INFO">Info</button>
+                </div>
+              </div>
+
+              <!-- Structured Findings Summary Box -->
+              {% if analysis.findings and analysis.findings.findings %}
+                <div style="padding: 12px 16px; background: var(--bg-surface); border-bottom: 1px solid var(--border-hairline);">
+                  <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-muted); font-weight: 600; margin-bottom: 8px;">
+                    Investigative Security Leads (Not Proof)
+                  </div>
+                  <div style="display: flex; flex-direction: column; gap: 6px;">
+                    {% for finding in analysis.findings.findings %}
+                      <div style="display: flex; gap: 10px; align-items: baseline; font-size: 0.8rem; padding: 6px 10px; background: var(--severity-high-bg); border-left: 3px solid var(--signal-vermilion); border-radius: 0 var(--radius-sm) var(--radius-sm) 0;">
+                        <span class="badge-forensic badge-critical" style="font-size: 0.68rem;">{{ finding.rule_id }}</span>
+                        <div style="flex: 1; color: var(--ink-primary);">
+                          <strong>{{ finding.reason }}</strong>
+                          <span style="color: var(--ink-muted);">· {{ finding.events }} occurrence(s)</span>
+                          {% if finding.evidence_lines %}
+                            <span style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--ink-secondary);">
+                              [lines: {{ finding.evidence_lines[:5] | join(', ') }}{% if finding.evidence_lines | length > 5 %}...{% endif %}]
+                            </span>
+                          {% endif %}
+                        </div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                </div>
+              {% endif %}
+
+              <!-- Virtualized Monospace Log Stream Pane -->
+              <div class="log-stream-pane" id="events-list-{{ analysis.id }}">
+                {% for event in analysis.findings.events %}
+                  <div class="log-line-row" data-severity="{{ event.severity }}">
+                    <span class="log-line-num">{{ event.line }}</span>
+                    <span class="badge-forensic {% if event.severity in ('CRITICAL','ERROR') %}badge-critical{% elif event.severity == 'WARNING' %}badge-high{% else %}badge-info{% endif %}" style="font-size: 0.62rem; padding: 1px 4px;">
+                      {{ event.severity }}
+                    </span>
+                    <span class="log-line-text">{{ event.text }}</span>
+                  </div>
+                {% endfor %}
+                {% if not analysis.findings.events %}
+                  <div style="padding: 16px; color: var(--ink-muted); font-size: 0.8rem;">
+                    No log events parsed in stream.
+                  </div>
+                {% endif %}
+              </div>
+
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div style="padding: 32px; text-align: center; color: var(--ink-muted); font-size: 0.85rem;">
+          No log streams ingested for this case. Drop .log or .csv files above.
+        </div>
+      {% endif %}
+    </section>
+
+    <!-- Section 3: Disk Images & Partition Maps -->
+    <section id="section-disks" class="panel" aria-labelledby="disksHeading">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md); padding-bottom: var(--space-sm); border-bottom: 1px solid var(--border-hairline);">
+        <div>
+          <h2 id="disksHeading" style="font-size: 1rem; font-weight: 600; margin: 0;">Disk Images &amp; Partition Maps</h2>
+          <div style="font-size: 0.75rem; color: var(--ink-muted);">Raw bitstream verification, MBR/GPT partition tables, and sector geometries</div>
+        </div>
+      </div>
+
+      <!-- Upload Disk Image Form -->
+      <form class="dropzone" method="post" enctype="multipart/form-data" action="{{ url_for('disk_image') }}" data-dropzone style="margin-bottom: var(--space-lg);">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="case_id" value="{{ case.id }}">
+        <input type="hidden" name="format" value="html">
+        <div style="font-weight: 500; font-size: 0.88rem; margin-bottom: 4px;">
+          Drop forensic disk image (.dd, .img)
+        </div>
+        <div style="font-size: 0.75rem; color: var(--ink-muted); margin-bottom: 12px;">
+          Parsed for MBR / GPT partition tables, 512 &amp; 4096-byte sectors, and SHA-256 baseline
+        </div>
+        <input type="file" name="file" class="dropzone-file-input" accept=".dd,.img" required aria-label="Select forensic disk image">
+        <button type="submit" class="btn btn-secondary btn-sm" style="margin-top: 8px;">
+          Examine Disk Image
+        </button>
+      </form>
+
+      {% if case.disk_images %}
+        <div style="display: flex; flex-direction: column; gap: var(--space-lg);">
+          {% for img in case.disk_images %}
+            <div style="border: 1px solid var(--border-hairline); border-radius: var(--radius-md); padding: 16px; background: var(--bg-surface);">
+              
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                <div>
+                  <div style="font-family: var(--font-mono); font-weight: 600; font-size: 0.92rem; color: var(--ink-primary);">
+                    {{ img.filename }}
+                  </div>
+                  <div style="font-size: 0.75rem; color: var(--ink-muted); margin-top: 2px;">
+                    Scheme: <strong>{{ img.results.scheme or 'Unknown' }}</strong> · Size: {{ img.results.size_formatted or '' }}
+                  </div>
+                </div>
+                <span class="badge-forensic badge-info">{% if img.analysis_status == 'hash_only' %}Hash-only{% elif img.analysis_status %}{{ img.analysis_status }}{% else %}Bitstream Hash Verified{% endif %}</span>
+              </div>
+
+              <!-- Hash Display -->
+              <div class="hash-block" data-copy-hash="{{ img.sha256 }}" title="Click to copy full SHA-256 hash" style="margin-bottom: 16px;">
+                <span class="hash-lead">{{ img.sha256[:8] }}</span> {{ img.sha256[8:24] }} ... <span class="hash-lead">{{ img.sha256[-8:] }}</span>
+              </div>
+
+              <!-- Structured Warnings if any -->
+              {% if img.warnings %}
+                <div style="padding: 8px 12px; background: var(--severity-high-bg); border-left: 3px solid var(--signal-vermilion); margin-bottom: 12px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0;">
+                  <div style="font-size: 0.72rem; font-weight: 600; color: var(--severity-high-text); text-transform: uppercase;">
+                    Partition Table Warnings:
+                  </div>
+                  <ul style="margin: 4px 0 0; padding-left: 18px; font-size: 0.78rem; color: var(--ink-primary);">
+                    {% for w in img.warnings %}
+                      <li>{{ w }}</li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              {% endif %}
+
+              <!-- Partition Geometry Table & Proportional Bar -->
+              {% if img.results and img.results.partitions %}
+                <!-- Proportional Visual Partition Map Bar -->
+                <div style="margin-bottom: 12px;">
+                  <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-muted); font-weight: 600; margin-bottom: 4px;">
+                    Partition Allocation Map
+                  </div>
+                  <div class="partition-bar">
+                    {% for part in img.results.partitions %}
+                      <div class="partition-segment" style="flex: {{ part.num_sectors or 1 }};" title="{{ part.type_name }} ({{ part.size_formatted }})">
+                        <span>#{{ part.slot }} · {{ part.type_name[:12] }}</span>
+                      </div>
+                    {% endfor %}
+                  </div>
+                </div>
+
+                <div class="table-container">
+                  <table class="table-forensic">
+                    <thead>
+                      <tr>
+                        <th style="width: 50px;">Slot</th>
+                        <th>Type / Label</th>
+                        <th>Partition Name</th>
+                        <th>Start LBA</th>
+                        <th>Sectors</th>
+                        <th>Capacity</th>
+                        <th>Bootable</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for part in img.results.partitions %}
+                        <tr>
+                          <td style="font-family: var(--font-mono); font-size: 0.78rem;">#{{ part.slot }}</td>
+                          <td>
+                            <strong>{{ part.type_name }}</strong>
+                            {% if part.type_id %}
+                              <span style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--ink-muted);">({{ part.type_id }})</span>
+                            {% endif %}
+                          </td>
+                          <td style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--ink-secondary);">
+                            {{ part.name or '—' }}
+                          </td>
+                          <td style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-muted);">
+                            {{ part.start_lba }}
+                          </td>
+                          <td style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-muted);">
+                            {{ part.num_sectors }}
+                          </td>
+                          <td style="font-weight: 500;">{{ part.size_formatted }}</td>
+                          <td>
+                            {% if part.bootable %}
+                              <span class="badge-forensic badge-verified" style="font-size: 0.65rem;">✓ Bootable</span>
+                            {% else %}
+                              <span style="color: var(--ink-faint); font-size: 0.78rem;">No</span>
+                            {% endif %}
+                          </td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              {% else %}
+                <div style="font-size: 0.8rem; color: var(--ink-muted); padding: 8px 0;">
+                  Raw bitstream stream: No master partition table recognized.
+                </div>
+              {% endif %}
+
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div style="padding: 32px; text-align: center; color: var(--ink-muted); font-size: 0.85rem;">
+          No forensic disk images registered for this case.
+        </div>
+      {% endif %}
+    </section>
+
+    <!-- Section 4: Chain of Custody & Audit Timeline -->
+    <section id="section-custody" class="panel" aria-labelledby="custodyHeading">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md); padding-bottom: var(--space-sm); border-bottom: 1px solid var(--border-hairline);">
+        <div>
+          <h2 id="custodyHeading" style="font-size: 1rem; font-weight: 600; margin: 0;">Chain of Custody Ledger</h2>
+          <div style="font-size: 0.75rem; color: var(--ink-muted);">Immutable chronological log of all evidence intake, cryptographic verifications, and reports</div>
+        </div>
+      </div>
+
+      {% if activities %}
+        <div class="chain-timeline" style="margin-left: 12px; margin-top: 8px;">
+          {% for act in activities %}
+            <div class="timeline-step">
+              <div class="timeline-point {% if 'failure' in act.action_type %}failed{% elif 'verified' in act.action_type %}verified{% endif %}"></div>
+              <div class="timeline-action">
+                {{ act.action_type | replace('_', ' ') | title }}
+              </div>
+              <div class="timeline-detail">
+                {{ act.result }}
+              </div>
+              <div class="timeline-timestamp">
+                {{ act.created_at.strftime('%Y-%m-%d %H:%M:%S UTC') }} · Case #{{ act.case_id }}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div style="padding: 32px; text-align: center; color: var(--ink-muted); font-size: 0.85rem;">
+          No activity recorded yet for this case.
+        </div>
+      {% endif %}
+    </section>
+
+  </div>
+</div>
 {% endblock %}

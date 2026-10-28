@@ -1,69 +1,111 @@
 {% extends "base.html" %}
 
+{% block title %}Case Registry · Digital Forensics Toolkit{% endblock %}
+
 {% block content %}
 <div class="top-bar">
   <div>
-    <div class="eyebrow">Workspace</div>
-    <h1 class="page-title">Cases</h1>
-    <p class="muted mb-0">Investigations and their collected artifacts.</p>
+    <div class="eyebrow">Case Management</div>
+    <h1 class="page-title">Forensic Case Registry</h1>
+    <p class="muted mb-0">Active investigations, evidentiary custody scopes, and lead investigators.</p>
   </div>
   <div>
     <a class="btn btn-primary" href="{{ url_for('new_case') }}">
-      + New case
+      + Register Case
     </a>
   </div>
 </div>
 
-<div class="panel p-3 mb-4 d-flex justify-content-between align-items-center">
-  <div class="d-flex align-items-center gap-2 w-100" style="max-width: 400px;">
-    <input type="text" id="caseSearchInput" class="form-control form-control-sm" placeholder="Filter cases by title or investigator..." oninput="filterCasesTable()">
-  </div>
-  <div class="small text-muted">
-    Total: <span class="fw-bold text-white">{{ cases | length }}</span> case(s)
-  </div>
+<!-- Filter Bar -->
+<div class="panel" style="padding: 12px 16px; margin-bottom: var(--space-lg);">
+  <form method="get" action="{{ url_for('cases') }}" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+    <div style="flex: 1; min-width: 240px;">
+      <input type="search" name="q" value="{{ request.args.get('q', '') }}" class="form-input" placeholder="Search by case title or investigator... (Press '/' to focus)">
+    </div>
+    <div style="min-width: 160px;">
+      <select name="status" class="form-input" aria-label="Filter by case status">
+        <option value="">All Statuses</option>
+        <option value="Open" {% if request.args.get('status') == 'Open' %}selected{% endif %}>Open</option>
+        <option value="In Progress" {% if request.args.get('status') == 'In Progress' %}selected{% endif %}>In Progress</option>
+        <option value="Closed" {% if request.args.get('status') == 'Closed' %}selected{% endif %}>Closed</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
+    {% if request.args.get('q') or request.args.get('status') %}
+      <a href="{{ url_for('cases') }}" class="btn btn-secondary btn-sm" style="color: var(--ink-muted);">Clear</a>
+    {% endif %}
+  </form>
 </div>
 
-<div class="table-wrap">
-  <table class="table" id="casesTable">
+<!-- Case Ledger Table -->
+<div class="table-container">
+  <table class="table-forensic">
     <thead>
       <tr>
-        <th>Case</th>
-        <th>Investigator</th>
-        <th>Status</th>
-        <th>Created</th>
-        <th></th>
+        <th style="width: 70px;">Ref ID</th>
+        <th>Case Title &amp; Description</th>
+        <th>Lead Investigator</th>
+        <th>Artifacts</th>
+        <th>Lifecycle Status</th>
+        <th>Registered Date</th>
+        <th style="text-align: right;">Action</th>
       </tr>
     </thead>
     <tbody>
       {% for case in cases %}
-        <tr class="case-row" data-search="{{ case.title | lower }} {{ case.investigator | lower }}">
+        <tr>
+          <td style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--ink-muted);">
+            #{{ case.id }}
+          </td>
           <td>
-            <a class="fw-semibold text-white fs-6" href="{{ url_for('case_detail', case_id=case.id) }}">
+            <a href="{{ url_for('case_detail', case_id=case.id) }}" style="font-weight: 600; color: var(--ink-primary); text-decoration: none; font-size: 0.92rem;">
               {{ case.title }}
             </a>
-            <div class="small text-muted font-monospace">Case #{{ case.id }} · {{ case.evidence | length }} item(s)</div>
+            {% if case.description %}
+              <div style="font-size: 0.78rem; color: var(--ink-muted); margin-top: 2px; max-width: 480px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                {{ case.description }}
+              </div>
+            {% endif %}
+          </td>
+          <td style="font-size: 0.82rem; color: var(--ink-secondary);">
+            {{ case.investigator }}
+          </td>
+          <td style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-muted);">
+            {{ case.evidence | length }} item(s)
           </td>
           <td>
-            <span class="text-slate-300">{{ case.investigator }}</span>
+            {% if case.status == 'Open' %}
+              <span class="badge-forensic badge-unverified">
+                <span class="badge-shape">●</span> Open
+              </span>
+            {% elif case.status == 'In Progress' %}
+              <span class="badge-forensic badge-medium">
+                <span class="badge-shape">▲</span> In Progress
+              </span>
+            {% else %}
+              <span class="badge-forensic badge-verified">
+                <span class="badge-shape">✓</span> Closed
+              </span>
+            {% endif %}
           </td>
-          <td>
-            <span class="badge-status {% if case.status == 'Closed' %}badge-closed{% elif case.status in ('In Progress', 'Under Review') %}badge-warning{% endif %}">
-              {{ case.status }}
-            </span>
+          <td style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--ink-muted);">
+            {{ case.created_at.strftime('%Y-%m-%d') if case.created_at else '—' }}
           </td>
-          <td class="muted small">
-            {{ case.created_at.strftime('%d %b %Y') }}
-          </td>
-          <td class="text-end">
-            <a class="btn btn-outline-light btn-sm-action" href="{{ url_for('case_detail', case_id=case.id) }}">
-              Open →
+          <td style="text-align: right;">
+            <a href="{{ url_for('case_detail', case_id=case.id) }}" class="btn btn-secondary btn-sm">
+              Open Workspace →
             </a>
           </td>
         </tr>
       {% else %}
         <tr>
-          <td colspan="5">
-            <div class="empty">No cases registered yet.</div>
+          <td colspan="7" style="text-align: center; padding: 48px 16px;">
+            <div style="color: var(--ink-muted); font-size: 0.9rem; margin-bottom: 12px;">
+              No forensic cases matched the requested criteria.
+            </div>
+            <a href="{{ url_for('new_case') }}" class="btn btn-primary btn-sm">
+              + Register New Case
+            </a>
           </td>
         </tr>
       {% endfor %}
@@ -71,14 +113,21 @@
   </table>
 </div>
 
-<script>
-  function filterCasesTable() {
-    const q = document.getElementById('caseSearchInput').value.toLowerCase();
-    const rows = document.querySelectorAll('.case-row');
-    rows.forEach(r => {
-      const match = r.getAttribute('data-search').includes(q);
-      r.style.display = match ? '' : 'none';
-    });
-  }
-</script>
+<!-- Pagination Controls -->
+{% if pagination and pagination.pages > 1 %}
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-md); padding: 8px 4px; font-size: 0.8rem; color: var(--ink-muted);">
+    <div>
+      Showing page {{ pagination.page }} of {{ pagination.pages }} ({{ pagination.total }} total cases)
+    </div>
+    <div style="display: flex; gap: 6px;">
+      {% if pagination.has_prev %}
+        <a href="{{ url_for('cases', page=pagination.prev_num, q=request.args.get('q', ''), status=request.args.get('status', '')) }}" class="btn btn-secondary btn-sm">← Previous</a>
+      {% endif %}
+      {% if pagination.has_next %}
+        <a href="{{ url_for('cases', page=pagination.next_num, q=request.args.get('q', ''), status=request.args.get('status', '')) }}" class="btn btn-secondary btn-sm">Next →</a>
+      {% endif %}
+    </div>
+  </div>
+{% endif %}
+
 {% endblock %}

@@ -1,111 +1,333 @@
 {% extends "base.html" %}
 
+{% block title %}Dashboard · Digital Forensics Toolkit{% endblock %}
+
 {% block content %}
 <div class="top-bar">
   <div>
-    <div class="eyebrow">Investigation Overview</div>
-    <h1 class="page-title">Dashboard</h1>
-    <p class="muted mb-0">A clear view of your forensic workspace.</p>
+    <div class="eyebrow">Workstation Triage</div>
+    <h1 class="page-title">Forensic Work Queue</h1>
+    <p class="muted mb-0">Prioritized evidence verification, flagged detection leads, and case activity ledger.</p>
   </div>
-  <div>
+  <div style="display: flex; gap: var(--space-sm);">
     <a class="btn btn-primary" href="{{ url_for('new_case') }}">
-      + Create new case
+      + Register Case
     </a>
   </div>
 </div>
 
-<!-- KPI Metrics Grid -->
-<div class="row g-3 mb-4">
-  {% for key, label, icon in [
-    ('cases', 'Total cases', '▣'),
-    ('evidence', 'Evidence items', '◇'),
-    ('logs', 'Log analyses', '≡'),
-    ('flagged', 'Flagged patterns', '⚠'),
-    ('reports', 'Reports generated', '↗')
-  ] %}
-    <div class="col-6 col-lg">
-      <div class="metric">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <span>{{ label }}</span>
-          <span style="color: var(--accent); font-size: 0.9rem;">{{ icon }}</span>
-        </div>
-        <strong>{{ counts[key] }}</strong>
+{% if counts.cases == 0 %}
+  <!-- Empty State with Load Demo Data Action -->
+  <div class="panel" style="text-align: center; padding: 48px 24px; max-width: 640px; margin: 32px auto;">
+    <div style="font-family: var(--font-display); font-size: 1.35rem; font-weight: 600; color: var(--ink-primary); margin-bottom: 8px;">
+      Workspace Ready for Investigation
+    </div>
+    <p style="color: var(--ink-muted); font-size: 0.88rem; line-height: 1.5; margin-bottom: 24px;">
+      No forensic cases are currently registered. Register an initial investigation to intake digital evidence,
+      or load pre-configured synthetic sample data to explore automated log detections and cryptographic verification.
+    </p>
+    <div style="display: flex; gap: 12px; justify-content: center; align-items: center; flex-wrap: wrap;">
+      <a href="{{ url_for('new_case') }}" class="btn btn-primary">
+        + Register Initial Case
+      </a>
+      <form action="{{ url_for('seed_demo_route') }}" method="post" style="display: inline;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
+        <button type="submit" class="btn btn-secondary">
+          Load Synthetic Demo Data
+        </button>
+      </form>
+    </div>
+  </div>
+{% else %}
+
+  <!-- Work Queue Metrics Bar (Not vanity cards, operational status) -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1px; background: var(--border-hairline); border: 1px solid var(--border-hairline); border-radius: var(--radius-md); margin-bottom: var(--space-xl); overflow: hidden;">
+    
+    <div style="background: var(--bg-surface); padding: 14px 16px;">
+      <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-muted); font-weight: 600;">
+        Needs Verification
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 4px;">
+        <span style="font-family: var(--font-mono); font-size: 1.6rem; font-weight: 600; color: {{ 'var(--signal-vermilion)' if counts.pending_verification + counts.integrity_failures > 0 else 'var(--ink-primary)' }};">
+          {{ counts.pending_verification + counts.integrity_failures }}
+        </span>
+        <span style="font-size: 0.75rem; color: var(--ink-muted);">
+          {% if counts.integrity_failures > 0 %}
+            <strong style="color: var(--signal-vermilion);">({{ counts.integrity_failures }} failed)</strong>
+          {% else %}
+            items pending
+          {% endif %}
+        </span>
       </div>
     </div>
-  {% endfor %}
-</div>
 
-<!-- Main Split: Recent Cases & Recent Activity -->
-<div class="row g-4">
-  <div class="col-lg-7">
-    <div class="panel h-100">
-      <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom" style="border-color: var(--border)!important;">
-        <h2 class="h5 mb-0 text-white font-monospace">Recent Cases</h2>
-        <a href="{{ url_for('cases') }}" class="small">View all cases →</a>
+    <div style="background: var(--bg-surface); padding: 14px 16px;">
+      <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-muted); font-weight: 600;">
+        Flagged Detection Leads
       </div>
+      <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 4px;">
+        <span style="font-family: var(--font-mono); font-size: 1.6rem; font-weight: 600; color: {{ 'var(--severity-high-text)' if counts.flagged > 0 else 'var(--ink-primary)' }};">
+          {{ counts.flagged }}
+        </span>
+        <span style="font-size: 0.75rem; color: var(--ink-muted);">security patterns</span>
+      </div>
+    </div>
 
-      {% if cases %}
-        <div class="d-flex flex-column gap-2">
-          {% for case in cases %}
-            <div class="card-dark d-flex justify-content-between align-items-center">
-              <div>
-                <a href="{{ url_for('case_detail', case_id=case.id) }}" class="fw-bold text-white fs-6">
-                  {{ case.title }}
-                </a>
-                <div class="muted small mt-1">
-                  Lead: <span class="text-slate-300">{{ case.investigator }}</span> · Created: {{ case.created_at.strftime('%d %b %Y') }}
+    <div style="background: var(--bg-surface); padding: 14px 16px;">
+      <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-muted); font-weight: 600;">
+        Idle Cases (&gt; 7 Days)
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 4px;">
+        <span style="font-family: var(--font-mono); font-size: 1.6rem; font-weight: 600; color: {{ 'var(--severity-medium-text)' if counts.cases_idle > 0 else 'var(--ink-primary)' }};">
+          {{ counts.cases_idle }}
+        </span>
+        <span style="font-size: 0.75rem; color: var(--ink-muted);">awaiting sign-off</span>
+      </div>
+    </div>
+
+    <div style="background: var(--bg-surface); padding: 14px 16px;">
+      <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-muted); font-weight: 600;">
+        Active Cases Ledger
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 4px;">
+        <span style="font-family: var(--font-mono); font-size: 1.6rem; font-weight: 600; color: var(--ink-primary);">
+          {{ counts.cases }}
+        </span>
+        <span style="font-size: 0.75rem; color: var(--ink-muted);">{{ counts.evidence }} artifacts registered</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Main Work Queue Split: Action Queues & Case Ledger -->
+  <div style="display: grid; grid-template-columns: 1fr 340px; gap: var(--space-xl); align-items: start;">
+    
+    <!-- Left Column: Work Queues -->
+    <div style="display: flex; flex-direction: column; gap: var(--space-xl);">
+
+      <!-- Work Queue 1: Needs Verification -->
+      <section class="panel" aria-labelledby="queueVerifyHeading">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md); padding-bottom: var(--space-sm); border-bottom: 1px solid var(--border-hairline);">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="badge-shape" style="color: var(--signal-vermilion);">▲</span>
+            <h2 id="queueVerifyHeading" style="font-size: 0.92rem; font-weight: 600; margin: 0; text-transform: uppercase; letter-spacing: 0.04em;">
+              Evidence Awaiting Verification
+            </h2>
+          </div>
+          <a href="{{ url_for('evidence_index') }}" style="font-size: 0.75rem; color: var(--ink-muted);">All Evidence →</a>
+        </div>
+
+        {% if queue_needs_verify %}
+          <div class="table-container">
+            <table class="table-forensic">
+              <thead>
+                <tr>
+                  <th>Artifact</th>
+                  <th>Integrity Status</th>
+                  <th>Case Ref</th>
+                  <th>Collected</th>
+                  <th style="text-align: right;">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for ev in queue_needs_verify %}
+                  <tr>
+                    <td>
+                      <div style="font-weight: 500; color: var(--ink-primary);">{{ ev.description }}</div>
+                      <div class="hash-block" data-copy-hash="{{ ev.sha256 }}" title="Click to copy SHA-256">
+                        <span class="hash-lead">{{ ev.sha256[:8] }}</span>{{ ev.sha256[8:24] }}...{{ ev.sha256[-8:] }}
+                      </div>
+                    </td>
+                    <td>
+                      {% if ev.last_verified_ok is none %}
+                        <span id="status-badge-{{ ev.id }}" class="badge-forensic badge-unverified">
+                          <span class="badge-shape">○</span> Not Verified
+                        </span>
+                      {% elif ev.last_verified_ok is false %}
+                        <span id="status-badge-{{ ev.id }}" class="badge-forensic badge-failed">
+                          <span class="badge-shape">✕</span> Tampered
+                        </span>
+                      {% else %}
+                        <span id="status-badge-{{ ev.id }}" class="badge-forensic badge-verified">
+                          <span class="badge-shape">✓</span> Verified
+                        </span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      <a href="{{ url_for('case_detail', case_id=ev.case_id) }}" style="font-size: 0.8rem;">
+                        Case #{{ ev.case_id }}
+                      </a>
+                    </td>
+                    <td style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--ink-muted);">
+                      {{ ev.collected_at.strftime('%Y-%m-%d') if ev.collected_at else '—' }}
+                    </td>
+                    <td style="text-align: right;">
+                      <button type="button" class="btn btn-secondary btn-sm"
+                              onclick="verifyEvidence({{ ev.id }}, '{{ csrf_token() }}', this)"
+                              title="Recalculate SHA-256 against stored baseline">
+                        Verify
+                      </button>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div style="padding: 24px; text-align: center; color: var(--ink-muted); font-size: 0.85rem;">
+            ✓ All registered evidence items currently verified against cryptographic baseline.
+          </div>
+        {% endif %}
+      </section>
+
+      <!-- Work Queue 2: Flagged Detection Leads -->
+      <section class="panel" aria-labelledby="queueLeadsHeading">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md); padding-bottom: var(--space-sm); border-bottom: 1px solid var(--border-hairline);">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="badge-shape" style="color: var(--severity-high-text);">⚠</span>
+            <h2 id="queueLeadsHeading" style="font-size: 0.92rem; font-weight: 600; margin: 0; text-transform: uppercase; letter-spacing: 0.04em;">
+              Security Detections Requiring Triage
+            </h2>
+          </div>
+          <a href="{{ url_for('logs_index') }}" style="font-size: 0.75rem; color: var(--ink-muted);">All Logs →</a>
+        </div>
+
+        {% if queue_flagged_logs %}
+          <div class="table-container">
+            <table class="table-forensic">
+              <thead>
+                <tr>
+                  <th>Log Source</th>
+                  <th>Flagged Patterns</th>
+                  <th>Processed Events</th>
+                  <th>Case</th>
+                  <th style="text-align: right;">Workspace</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for log in queue_flagged_logs %}
+                  <tr>
+                    <td>
+                      <div style="font-weight: 500; font-family: var(--font-mono); font-size: 0.82rem;">
+                        {{ log.filename }}
+                      </div>
+                    </td>
+                    <td>
+                      <span class="badge-forensic badge-high">
+                        <span class="badge-shape">▲</span> {{ log.flagged_patterns }} leads flagged
+                      </span>
+                    </td>
+                    <td style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-muted);">
+                      {{ log.events_processed }} lines
+                    </td>
+                    <td>
+                      <a href="{{ url_for('case_detail', case_id=log.case_id) }}">
+                        Case #{{ log.case_id }}
+                      </a>
+                    </td>
+                    <td style="text-align: right;">
+                      <a href="{{ url_for('case_detail', case_id=log.case_id) }}" class="btn btn-secondary btn-sm">
+                        Inspect →
+                      </a>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div style="padding: 24px; text-align: center; color: var(--ink-muted); font-size: 0.85rem;">
+            No active security pattern leads flagged across log analyses.
+          </div>
+        {% endif %}
+      </section>
+
+      <!-- Active Cases Ledger -->
+      <section class="panel" aria-labelledby="activeCasesHeading">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md); padding-bottom: var(--space-sm); border-bottom: 1px solid var(--border-hairline);">
+          <h2 id="activeCasesHeading" style="font-size: 0.92rem; font-weight: 600; margin: 0; text-transform: uppercase; letter-spacing: 0.04em;">
+            Recent Forensic Cases
+          </h2>
+          <a href="{{ url_for('cases') }}" style="font-size: 0.75rem; color: var(--ink-muted);">Full Case Registry →</a>
+        </div>
+
+        <div class="table-container">
+          <table class="table-forensic">
+            <thead>
+              <tr>
+                <th style="width: 50px;">ID</th>
+                <th>Title &amp; Scenario</th>
+                <th>Lead Investigator</th>
+                <th>Status</th>
+                <th style="text-align: right;">Open</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for c in cases %}
+                <tr>
+                  <td style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-muted);">#{{ c.id }}</td>
+                  <td>
+                    <a href="{{ url_for('case_detail', case_id=c.id) }}" style="font-weight: 500; color: var(--ink-primary); text-decoration: none;">
+                      {{ c.title }}
+                    </a>
+                  </td>
+                  <td style="font-size: 0.82rem; color: var(--ink-secondary);">{{ c.investigator }}</td>
+                  <td>
+                    {% if c.status == 'Open' %}
+                      <span class="badge-forensic badge-unverified"><span class="badge-shape">●</span> Open</span>
+                    {% elif c.status == 'In Progress' %}
+                      <span class="badge-forensic badge-medium"><span class="badge-shape">▲</span> In Progress</span>
+                    {% else %}
+                      <span class="badge-forensic badge-verified"><span class="badge-shape">✓</span> Closed</span>
+                    {% endif %}
+                  </td>
+                  <td style="text-align: right;">
+                    <a href="{{ url_for('case_detail', case_id=c.id) }}" class="btn btn-secondary btn-sm">
+                      Ledger →
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Right Rail: Audit Stream Activity Ledger -->
+    <aside aria-label="Recent forensic activities">
+      <div class="panel" style="position: sticky; top: 16px;">
+        <div style="font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-muted); margin-bottom: var(--space-md); padding-bottom: var(--space-sm); border-bottom: 1px solid var(--border-hairline);">
+          Activity Audit Stream
+        </div>
+
+        {% if recent_activity %}
+          <div class="chain-timeline" style="margin-left: 8px;">
+            {% for act in recent_activity %}
+              <div class="timeline-step">
+                <div class="timeline-point {% if 'failure' in act.action_type %}failed{% elif 'verified' in act.action_type %}verified{% endif %}"></div>
+                <div class="timeline-action">
+                  {{ act.action_type | replace('_', ' ') | title }}
+                </div>
+                <div class="timeline-detail" style="font-size: 0.75rem; word-break: break-all;">
+                  {{ act.result | truncate(80) }}
+                </div>
+                <div class="timeline-timestamp">
+                  {{ act.created_at.strftime('%d %b %H:%M UTC') }} · Case #{{ act.case_id }}
                 </div>
               </div>
-              <div class="d-flex align-items-center gap-3">
-                <span class="badge-status {% if case.status == 'Closed' %}badge-closed{% elif case.status in ('In Progress', 'Under Review') %}badge-warning{% endif %}">
-                  {{ case.status }}
-                </span>
-                <a href="{{ url_for('case_detail', case_id=case.id) }}" class="btn btn-outline-light btn-sm-action">
-                  Open →
-                </a>
-              </div>
-            </div>
-          {% endfor %}
-        </div>
-      {% else %}
-        <div class="empty">
-          <div class="fs-4 mb-2">📂</div>
-          No investigations yet. Create your first case to begin.
-        </div>
-      {% endif %}
-    </div>
-  </div>
-
-  <div class="col-lg-5">
-    <div class="panel h-100">
-      <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom" style="border-color: var(--border)!important;">
-        <h2 class="h5 mb-0 text-white font-monospace">Recent Activity</h2>
-        <span class="small text-muted">Audit stream</span>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div style="padding: 16px; text-align: center; color: var(--ink-muted); font-size: 0.8rem;">
+            No activities recorded in audit ledger yet.
+          </div>
+        {% endif %}
       </div>
+    </aside>
 
-      {% if recent_activity %}
-        <div class="activity-feed">
-          {% for item in recent_activity %}
-            <div class="activity-item {% if 'failure' in item.action_type %}act-danger{% elif 'flagged' in item.action_type %}act-warn{% endif %}">
-              <div class="fw-semibold text-white small">
-                {{ item.action_type | replace('_', ' ') | title }}
-              </div>
-              <div class="text-muted small my-1 font-monospace" style="word-break: break-all;">
-                {{ item.result | truncate(80) }}
-              </div>
-              <small class="text-dim" style="font-size: 0.72rem;">
-                {{ item.created_at.strftime('%d %b %Y, %H:%M UTC') }}
-              </small>
-            </div>
-          {% endfor %}
-        </div>
-      {% else %}
-        <div class="empty">
-          <div class="fs-4 mb-2">⏱</div>
-          Activity will appear here as you work.
-        </div>
-      {% endif %}
-    </div>
   </div>
-</div>
+
+{% endif %}
 {% endblock %}

@@ -70,7 +70,7 @@ def preview_file(path: str | Path, max_bytes: int = 4096) -> dict:
     # Build formatted hex dump (offset, hex bytes, ascii)
     hex_lines = []
     for i in range(0, len(raw), 16):
-        chunk = raw[i:i + 16]
+        chunk = raw[i : i + 16]
         hex_bytes = " ".join(f"{b:02X}" for b in chunk)
         # Pad hex display if chunk < 16 bytes
         if len(chunk) < 16:

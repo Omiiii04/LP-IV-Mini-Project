@@ -1,70 +1,91 @@
 {% extends "base.html" %}
 
+{% block title %}Log Detections Registry · Digital Forensics Toolkit{% endblock %}
+
 {% block content %}
 <div class="top-bar">
   <div>
-    <div class="eyebrow">Analysis Register</div>
-    <h1 class="page-title">Log Analysis</h1>
-    <p class="muted mb-0">Patterns are investigative leads, not proof of malicious activity.</p>
+    <div class="eyebrow">Detection Ledger</div>
+    <h1 class="page-title">Log Analysis Register</h1>
+    <p class="muted mb-0">Security pattern detections represent investigative leads, not definitive proof of malicious activity.</p>
   </div>
 </div>
 
-<div class="panel p-3 mb-4 d-flex justify-content-between align-items-center">
-  <div class="d-flex align-items-center gap-2 w-100" style="max-width: 400px;">
-    <input type="text" id="logSearchInput" class="form-control form-control-sm" placeholder="Filter log analyses by filename or case..." oninput="filterLogsTable()">
-  </div>
-  <div class="small text-muted">
-    Total Analyses: <span class="fw-bold text-white">{{ analyses | length }}</span>
-  </div>
+<!-- Search and Filter Bar -->
+<div class="panel" style="padding: 12px 16px; margin-bottom: var(--space-lg);">
+  <form method="get" action="{{ url_for('logs_index') }}" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+    <div style="flex: 1; min-width: 240px;">
+      <input type="search" name="q" value="{{ request.args.get('q', '') }}" class="form-input" placeholder="Search log files or cases... (Press '/' to focus)">
+    </div>
+    <div style="min-width: 170px;">
+      <select name="status" class="form-input" aria-label="Filter by pattern findings">
+        <option value="">All Analysis Records</option>
+        <option value="flagged" {% if request.args.get('status') == 'flagged' %}selected{% endif %}>Flagged Patterns (&gt; 0)</option>
+        <option value="clean" {% if request.args.get('status') == 'clean' %}selected{% endif %}>Clean Baseline (0 Leads)</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
+    {% if request.args.get('q') or request.args.get('status') %}
+      <a href="{{ url_for('logs_index') }}" class="btn btn-secondary btn-sm" style="color: var(--ink-muted);">Clear</a>
+    {% endif %}
+  </form>
 </div>
 
-<div class="table-wrap">
-  <table class="table" id="logsTable">
+<!-- Logs Table -->
+<div class="table-container">
+  <table class="table-forensic">
     <thead>
       <tr>
-        <th>File</th>
-        <th>Case</th>
-        <th>Events</th>
-        <th>Flagged Patterns</th>
-        <th class="text-end"></th>
+        <th style="width: 60px;">ID</th>
+        <th>Log Source File</th>
+        <th>Case Reference</th>
+        <th>Events Processed</th>
+        <th>Detection Findings</th>
+        <th style="text-align: right;">Action</th>
       </tr>
     </thead>
     <tbody>
       {% for item in analyses %}
-        <tr class="log-row" data-search="{{ item.filename | lower }} {{ item.case.title | lower }}">
-          <td>
-            <div class="fw-bold text-white">{{ item.filename }}</div>
-            <div class="small text-muted font-monospace">Analysis Record #{{ item.id }}</div>
+        <tr>
+          <td style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--ink-muted);">
+            #{{ item.id }}
           </td>
           <td>
-            <a href="{{ url_for('case_detail', case_id=item.case_id) }}" class="fw-semibold">
+            <div style="font-family: var(--font-mono); font-weight: 600; font-size: 0.88rem; color: var(--ink-primary);">
+              {{ item.filename }}
+            </div>
+          </td>
+          <td>
+            <a href="{{ url_for('case_detail', case_id=item.case_id) }}" style="font-weight: 500; font-size: 0.82rem;">
               {{ item.case.title }}
             </a>
           </td>
-          <td class="font-mono text-slate-300">
-            {{ item.events_processed }}
+          <td style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-muted);">
+            {{ item.events_processed }} lines
           </td>
           <td>
             {% if item.flagged_patterns > 0 %}
-              <span class="badge-status badge-warning">
-                ⚠ {{ item.flagged_patterns }} flagged
+              <span class="badge-forensic badge-high">
+                <span class="badge-shape">▲</span> {{ item.flagged_patterns }} leads flagged
               </span>
             {% else %}
-              <span class="badge-status badge-verified">
-                ✓ 0 flagged
+              <span class="badge-forensic badge-verified">
+                <span class="badge-shape">✓</span> Clean baseline (0)
               </span>
             {% endif %}
           </td>
-          <td class="text-end">
-            <a class="btn btn-outline-light btn-sm-action" href="{{ url_for('case_detail', case_id=item.case_id) }}">
-              Open case →
+          <td style="text-align: right;">
+            <a href="{{ url_for('case_detail', case_id=item.case_id) }}#section-logs" class="btn btn-secondary btn-sm">
+              Inspect Stream →
             </a>
           </td>
         </tr>
       {% else %}
         <tr>
-          <td colspan="5">
-            <div class="empty">No log analyses have been performed.</div>
+          <td colspan="6" style="text-align: center; padding: 48px 16px;">
+            <div style="color: var(--ink-muted); font-size: 0.9rem;">
+              No log analysis records found.
+            </div>
           </td>
         </tr>
       {% endfor %}
@@ -72,14 +93,21 @@
   </table>
 </div>
 
-<script>
-  function filterLogsTable() {
-    const q = document.getElementById('logSearchInput').value.toLowerCase();
-    const rows = document.querySelectorAll('.log-row');
-    rows.forEach(r => {
-      const match = r.getAttribute('data-search').includes(q);
-      r.style.display = match ? '' : 'none';
-    });
-  }
-</script>
+<!-- Pagination Controls -->
+{% if pagination and pagination.pages > 1 %}
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-md); padding: 8px 4px; font-size: 0.8rem; color: var(--ink-muted);">
+    <div>
+      Showing page {{ pagination.page }} of {{ pagination.pages }} ({{ pagination.total }} total analyses)
+    </div>
+    <div style="display: flex; gap: 6px;">
+      {% if pagination.has_prev %}
+        <a href="{{ url_for('logs_index', page=pagination.prev_num, q=request.args.get('q', ''), status=request.args.get('status', '')) }}" class="btn btn-secondary btn-sm">← Previous</a>
+      {% endif %}
+      {% if pagination.has_next %}
+        <a href="{{ url_for('logs_index', page=pagination.next_num, q=request.args.get('q', ''), status=request.args.get('status', '')) }}" class="btn btn-secondary btn-sm">Next →</a>
+      {% endif %}
+    </div>
+  </div>
+{% endif %}
+
 {% endblock %}

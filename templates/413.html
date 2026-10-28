@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}413 · Upload Limit Exceeded · DFT{% endblock %}
+{% block content %}
+<div class="empty-state" style="max-width: 600px; margin: 40px auto; text-align: left; background: var(--bg-surface); border: 1px solid var(--border-hairline); border-left: 4px solid var(--severity-high-text);">
+  <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--severity-high-text); font-weight: 700; margin-bottom: 8px;">
+    ERROR 413 · PAYLOAD TOO LARGE
+  </div>
+  <h2 style="margin-bottom: 12px; font-size: 1.4rem;">Upload Size Limit Exceeded</h2>
+  <p style="color: var(--ink-secondary); font-size: 0.9rem; line-height: 1.5; margin-bottom: 16px;">
+    {{ error_message or "The uploaded file exceeds the configured capacity limit for this route." }}
+  </p>
+  <div style="background: var(--bg-surface-subtle); border: 1px solid var(--border-hairline); padding: 12px; border-radius: var(--radius-sm); margin-bottom: 20px; font-family: var(--font-mono); font-size: 0.78rem;">
+    <div><strong>Configured Route Limits:</strong></div>
+    <div style="margin-top: 4px; color: var(--ink-secondary);">• Evidence Files: 64 MB</div>
+    <div style="color: var(--ink-secondary);">• Forensic Logs: 32 MB</div>
+    <div style="color: var(--ink-secondary);">• Raw Disk Images: 2 GB (streamed to disk)</div>
+  </div>
+  <div style="display: flex; gap: 8px;">
+    <a href="javascript:history.back()" class="btn btn-primary btn-sm">Go Back & Retry</a>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-sm">Dashboard</a>
+  </div>
+</div>
+{% endblock %}

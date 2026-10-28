@@ -1,45 +1,57 @@
 {% extends "base.html" %}
 
+{% block title %}Register Case · Digital Forensics Toolkit{% endblock %}
+
 {% block content %}
 <div class="top-bar">
   <div>
     <div class="eyebrow">New Investigation</div>
-    <h1 class="page-title">Register a case</h1>
-    <p class="muted mb-0">Initialize an investigative workspace with chain of custody tracking.</p>
+    <h1 class="page-title">Register Forensic Case</h1>
+    <p class="muted mb-0">Initialize an investigative workspace with cryptographic chain-of-custody tracking.</p>
   </div>
 </div>
 
-<div class="panel" style="max-width: 760px;">
+<div class="panel" style="max-width: 680px; padding: 24px;">
   <form method="post" action="{{ url_for('create_case') }}">
     {{ form.hidden_tag() }}
 
-    <div class="mb-3">
-      {{ form.title.label(class="form-label") }}
-      {{ form.title(class="form-control", placeholder="e.g. Workstation Incident - Endpoint compromise") }}
+    <div style="margin-bottom: var(--space-lg);">
+      <label class="form-label" for="title">{{ form.title.label.text }}</label>
+      {{ form.title(class="form-input", placeholder="e.g. Operation Chimera - Corporate Data Exfiltration", required=True) }}
       {% for error in form.title.errors %}
-        <div class="text-danger small mt-1">⚠ {{ error }}</div>
+        <div style="color: var(--signal-vermilion); font-size: 0.75rem; margin-top: 4px;">{{ error }}</div>
       {% endfor %}
-      <div class="form-text small muted">Give the investigation a clear, recognizable title.</div>
+      <div style="font-size: 0.75rem; color: var(--ink-muted); margin-top: 4px;">
+        Descriptive title identifying the incident, workstation, or compliance audit scope.
+      </div>
     </div>
 
-    <div class="mb-3">
-      {{ form.investigator.label(class="form-label") }}
-      {{ form.investigator(class="form-control", placeholder="Lead Investigator or Badge / Staff ID") }}
+    <div style="margin-bottom: var(--space-lg);">
+      <label class="form-label" for="investigator">{{ form.investigator.label.text }}</label>
+      {{ form.investigator(class="form-input", placeholder="e.g. Senior Forensic Lead Dr. Elena Rostova", required=True) }}
       {% for error in form.investigator.errors %}
-        <div class="text-danger small mt-1">⚠ {{ error }}</div>
+        <div style="color: var(--signal-vermilion); font-size: 0.75rem; margin-top: 4px;">{{ error }}</div>
       {% endfor %}
-      <div class="form-text small muted">Investigator responsible for chain of custody and analysis.</div>
+      <div style="font-size: 0.75rem; color: var(--ink-muted); margin-top: 4px;">
+        Investigator holding primary evidentiary responsibility and custody sign-off.
+      </div>
     </div>
 
-    <div class="mb-4">
-      {{ form.description.label(class="form-label") }}
-      {{ form.description(class="form-control", rows=5, placeholder="Scope, physical evidence notes, incident context, or authorization details...") }}
-      <div class="form-text small muted">Contextual summary of the scope and initial leads.</div>
+    <div style="margin-bottom: var(--space-xl);">
+      <label class="form-label" for="description">{{ form.description.label.text }}</label>
+      {{ form.description(class="form-input", rows=5, placeholder="Initial incident indicators, compromised systems, authorization reference, or timeline...") }}
+      <div style="font-size: 0.75rem; color: var(--ink-muted); margin-top: 4px;">
+        Contextual investigation summary recorded into official case reports.
+      </div>
     </div>
 
-    <div class="d-flex align-items-center gap-3">
-      <button class="btn btn-primary px-4">Create case</button>
-      <a class="btn btn-outline-light" href="{{ url_for('cases') }}">Cancel</a>
+    <div style="display: flex; gap: 12px; align-items: center;">
+      <button type="submit" class="btn btn-primary">
+        Initialize Case Workspace
+      </button>
+      <a href="{{ url_for('cases') }}" class="btn btn-secondary">
+        Cancel
+      </a>
     </div>
   </form>
 </div>

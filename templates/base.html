@@ -2,471 +2,87 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>{% block title %}DFT · Digital Forensics Toolkit{% endblock %}</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    :root {
-      --bg-dark: #f4f4f2;
-      --bg-surface: #ffffff;
-      --bg-panel: #ffffff;
-      --bg-card: #fafafa;
-      --border: #d7d7d2;
-      --border-focus: #111111;
-      --text-main: #1a1a1a;
-      --text-muted: #666666;
-      --text-dim: #858585;
-      --accent: #111111;
-      --accent-soft: #ededeb;
-      --success: #333333;
-      --warning: #555555;
-      --danger: #222222;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      background-color: var(--bg-dark);
-      color: var(--text-main);
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      font-size: 0.93rem;
-      line-height: 1.5;
-      overflow-x: hidden;
-    }
-    code, pre, .font-mono, .hash {
-      font-family: 'JetBrains Mono', monospace !important;
-    }
-    a { color: #111111; text-decoration: none; transition: all 0.15s ease; }
-    a:hover { color: #555555; text-decoration: underline; }
-    .text-white { color: var(--text-main) !important; }
-    .text-slate-300 { color: #4f4f4f !important; }
-
-    /* Shell Layout */
-    .shell { display: flex; min-height: 100vh; }
-    .sidebar {
-      width: 260px;
-      background: var(--bg-surface);
-      border-right: 1px solid var(--border);
-      padding: 24px 16px;
-      display: flex;
-      flex-direction: column;
-      flex-shrink: 0;
-      position: sticky;
-      top: 0;
-      height: 100vh;
-      z-index: 100;
-    }
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 4px 8px 24px;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 20px;
-    }
-    .brand-icon {
-      width: 36px;
-      height: 36px;
-      background: #111111;
-      border-radius: 9px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      font-size: 1.1rem;
-      color: #fff;
-    }
-    .brand-title {
-      font-weight: 700;
-      font-size: 1.05rem;
-      color: var(--text-main);
-      letter-spacing: 0.05em;
-      line-height: 1.1;
-    }
-    .brand-title small {
-      display: block;
-      color: var(--text-dim);
-      font-size: 0.65rem;
-      font-weight: 600;
-      letter-spacing: 0.14em;
-      margin-top: 3px;
-    }
-
-    /* Nav Links */
-    .nav-label {
-      font-size: 0.68rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--text-dim);
-      padding: 0 10px 8px;
-    }
-    .nav-link {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      color: var(--text-muted);
-      border-radius: 8px;
-      padding: 10px 12px;
-      margin-bottom: 4px;
-      font-weight: 500;
-      font-size: 0.88rem;
-      transition: all 0.15s ease;
-    }
-    .nav-link:hover {
-      color: var(--text-main);
-      background: var(--accent-soft);
-      transform: translateX(3px);
-    }
-    .nav-link.active {
-      color: var(--text-main);
-      background: var(--accent-soft);
-      border-left: 3px solid var(--accent);
-    }
-    .nav-link span {
-      font-size: 1rem;
-      width: 20px;
-      text-align: center;
-      color: var(--accent);
-    }
-
-    /* Main Content */
-    .main {
-      flex: 1;
-      min-width: 0;
-      padding: 32px 40px;
-      max-width: 1600px;
-    }
-    .top-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid var(--border);
-    }
-    .eyebrow {
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 4px;
-    }
-    .page-title {
-      font-size: 1.85rem;
-      font-weight: 800;
-      color: var(--text-main);
-      letter-spacing: -0.02em;
-      margin-bottom: 0;
-    }
-    .muted { color: var(--text-muted) !important; }
-
-    /* Panels & Cards */
-    .panel {
-      background: var(--bg-panel);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 24px;
-      margin-bottom: 24px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-    }
-    .card-dark {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 18px;
-    }
-    .metric {
-      background: var(--bg-panel);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
-      transition: transform 0.2s ease, border-color 0.2s ease;
-    }
-    .metric:hover {
-      border-color: #111111;
-      transform: translateY(-2px);
-    }
-    .metric strong {
-      display: block;
-      font-size: 2.2rem;
-      font-weight: 800;
-      color: var(--text-main);
-      line-height: 1;
-      margin-bottom: 6px;
-    }
-    .metric span {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      font-weight: 500;
-    }
-
-    /* Buttons */
-    .btn-primary {
-      background: #111111;
-      border: none;
-      color: #ffffff;
-      font-weight: 700;
-      padding: 8px 18px;
-      border-radius: 8px;
-      transition: all 0.15s ease;
-    }
-    .btn-primary:hover, .btn-primary:focus {
-      background: #3a3a3a;
-      color: #fff;
-      transform: translateY(-1px);
-    }
-    .btn-outline-light {
-      border-color: var(--border);
-      color: var(--text-main);
-      background: #ffffff;
-      border-radius: 8px;
-    }
-    .btn-outline-light:hover {
-      background: var(--accent-soft);
-      border-color: var(--text-main);
-      color: var(--text-main);
-    }
-    .btn-sm-action {
-      font-size: 0.78rem;
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-weight: 600;
-    }
-
-    /* Status Badges */
-    .badge-status {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      border: 1px solid #bdbdb8;
-      color: #333333;
-      background: #f1f1ef;
-      border-radius: 20px;
-      padding: 4px 12px;
-      font-size: 0.74rem;
-      font-weight: 600;
-    }
-    .badge-verified {
-      border-color: #bdbdb8;
-      color: #222222;
-      background: #eeeeec;
-    }
-    .badge-danger {
-      border-color: #555555;
-      color: #222222;
-      background: #e2e2df;
-    }
-    .badge-warning {
-      border-color: #999999;
-      color: #444444;
-      background: #f4f4f2;
-    }
-    .badge-closed {
-      border-color: #c8c8c3;
-      color: #777777;
-      background: #f7f7f5;
-    }
-
-    /* Tables */
-    .table-wrap {
-      background: var(--bg-panel);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-    }
-    .table {
-      --bs-table-bg: transparent;
-      --bs-table-color: var(--text-main);
-      --bs-table-border-color: var(--border);
-      margin: 0;
-    }
-    .table th {
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--text-dim);
-      background: #f4f4f2;
-      padding: 14px 18px;
-      border-bottom: 1px solid var(--border);
-    }
-    .table td {
-      padding: 14px 18px;
-      vertical-align: middle;
-      border-bottom: 1px solid var(--border);
-    }
-    .table tr:last-child td { border-bottom: none; }
-    .table tr:hover td {     background: #fafafa; }
-
-    /* Form Controls */
-    .form-control, .form-select {
-      background: var(--bg-surface);
-      border: 1px solid var(--border);
-      color: var(--text-main);
-      border-radius: 8px;
-      padding: 10px 14px;
-    }
-    .form-control:focus, .form-select:focus {
-      background: var(--bg-surface);
-      color: #fff;
-      border-color: var(--border-focus);
-      box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.1);
-    }
-    .form-label {
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-    }
-
-    /* Hashes & Copy Helpers */
-    .hash-badge {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.75rem;
-      background: #f4f4f2;
-      border: 1px solid var(--border);
-      padding: 3px 8px;
-      border-radius: 6px;
-      color: #333333;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .copy-btn {
-      cursor: pointer;
-      color: var(--accent);
-      border: none;
-      background: transparent;
-      padding: 0;
-      font-size: 0.72rem;
-    }
-    .copy-btn:hover { color: #111111; }
-
-    /* Activity Stream */
-    .activity-item {
-      border-left: 2px solid var(--border);
-      padding: 0 0 18px 18px;
-      margin-left: 8px;
-      position: relative;
-    }
-    .activity-item::before {
-      content: '';
-      position: absolute;
-      left: -6px;
-      top: 4px;
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: var(--accent);
-    }
-    .activity-item.act-warn::before { background: #777777; }
-    .activity-item.act-danger::before { background: #333333; }
-
-    /* Modal Dark */
-    .modal-content {
-      background: var(--bg-surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      color: var(--text-main);
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
-    }
-    .modal-header, .modal-footer {
-      border-color: var(--border);
-    }
-
-    /* Alerts */
-    .alert-success {
-      background: #eeeeec;
-      color: #333333;
-      border: 1px solid #c8c8c3;
-      border-radius: 8px;
-    }
-    .alert-danger {
-      background: #e6e6e3;
-      color: #222222;
-      border: 1px solid #999999;
-      border-radius: 8px;
-    }
-
-    /* Empty state */
-    .empty {
-      padding: 40px 20px;
-      text-align: center;
-      color: var(--text-dim);
-      font-size: 0.9rem;
-    }
-
-    /* Responsive */
-    @media (max-width: 900px) {
-      .shell { flex-direction: column; }
-      .sidebar {
-        width: 100%;
-        height: auto;
-        position: relative;
-        flex-direction: row;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: space-between;
-        padding: 16px;
-      }
-      .brand { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
-      .nav-label { display: none; }
-      .nav-link { margin-bottom: 0; font-size: 0.8rem; padding: 6px 10px; }
-      .main { padding: 20px 16px; }
-    }
-  </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
 </head>
 <body>
-  <div class="shell">
-    <aside class="sidebar">
-      <div class="brand">
-        <div class="brand-icon">D</div>
-        <div class="brand-title">
+  <a href="#main-content" class="skip-link">Skip to main forensic workspace</a>
+
+  <div class="app-shell shell">
+    <aside class="app-nav sidebar" aria-label="Forensic navigation">
+      <a class="nav-brand brand" href="{{ url_for('dashboard') }}">
+        <div class="nav-brand-mark brand-icon">D</div>
+        <div class="nav-brand-text brand-title">
           DFT
-          <small>FORENSIC TOOLKIT</small>
+          <span class="nav-brand-subtitle"><small>FORENSIC TOOLKIT</small></span>
         </div>
-      </div>
-      <nav aria-label="Main navigation" class="w-100">
-        <div class="nav-label">Investigation</div>
-        <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">
-          <span>⌂</span>Dashboard
-        </a>
-        <a class="nav-link {% if request.endpoint in ('cases','new_case','create_case','case_detail') %}active{% endif %}" href="{{ url_for('cases') }}">
-          <span>▣</span>Cases
-        </a>
-        <a class="nav-link {% if request.endpoint == 'evidence_index' %}active{% endif %}" href="{{ url_for('evidence_index') }}">
-          <span>◇</span>Evidence
-        </a>
-        <a class="nav-link {% if request.endpoint == 'logs_index' %}active{% endif %}" href="{{ url_for('logs_index') }}">
-          <span>≡</span>Log Analysis
-        </a>
-        <a class="nav-link {% if request.endpoint == 'disk_images_index' %}active{% endif %}" href="{{ url_for('disk_images_index') }}">
-          <span>◈</span>Disk Images
-        </a>
-        <a class="nav-link {% if request.endpoint == 'reports_index' %}active{% endif %}" href="{{ url_for('reports_index') }}">
-          <span>↗</span>Reports
-        </a>
+      </a>
+
+      <nav aria-label="Main navigation" style="width: 100%;">
+        <div class="nav-section-title nav-label">Investigation Ledger</div>
+        <ul class="nav-links">
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">
+              <svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint in ('cases','new_case','create_case','case_detail') %}active{% endif %}" href="{{ url_for('cases') }}">
+              <svg class="nav-icon" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+              <span>Cases</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'evidence_index' %}active{% endif %}" href="{{ url_for('evidence_index') }}">
+              <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+              <span>Evidence</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'logs_index' %}active{% endif %}" href="{{ url_for('logs_index') }}">
+              <svg class="nav-icon" viewBox="0 0 24 24"><line x1="21" y1="10" x2="3" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="21" y1="18" x2="3" y2="18"></line></svg>
+              <span>Log Analysis</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'disk_images_index' %}active{% endif %}" href="{{ url_for('disk_images_index') }}">
+              <svg class="nav-icon" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+              <span>Disk Images</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'reports_index' %}active{% endif %}" href="{{ url_for('reports_index') }}">
+              <svg class="nav-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+              <span>Reports</span>
+            </a>
+          </li>
+        </ul>
       </nav>
-      <div class="mt-auto pt-4 d-none d-md-block border-top" style="border-color: var(--border)!important;">
-        <div class="d-flex align-items-center gap-2 text-muted small">
-          <span class="d-inline-block rounded-circle bg-success" style="width: 8px; height: 8px;"></span>
-          <span style="font-size: 0.75rem;">Engine: Active (SQLite)</span>
+
+      <div class="nav-footer">
+        <div class="system-status-indicator">
+          <span class="status-dot"></span>
+          <span>Engine: Active (SQLite)</span>
+        </div>
+        <div style="font-size: 0.68rem; color: var(--ink-faint);">
+          Press <kbd style="background:var(--bg-muted);padding:1px 4px;border-radius:2px;">/</kbd> search · <kbd style="background:var(--bg-muted);padding:1px 4px;border-radius:2px;">g c</kbd> cases
         </div>
       </div>
     </aside>
 
-    <main class="main">
+    <main id="main-content" class="app-main main" tabindex="-1">
+      <div id="forensicToastContainer" class="toast-container" aria-live="polite"></div>
+
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
           {% for category, message in messages %}
-            <div class="alert alert-{{ category if category != 'error' else 'danger' }} mb-4 d-flex justify-content-between align-items-center">
-              <div>{{ message }}</div>
-              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+            <div class="forensic-toast toast-{{ 'error' if category in ('error', 'danger') else ('success' if category == 'success' else 'info') }}" style="margin-bottom: var(--space-md);">
+              <div style="flex: 1;">{{ message }}</div>
+              <button type="button" aria-label="Dismiss alert" class="toast-dismiss-btn" data-dismiss-toast style="background:none;border:none;cursor:pointer;color:var(--ink-muted);font-size:1.1rem;line-height:1;">&times;</button>
             </div>
           {% endfor %}
         {% endif %}
@@ -476,146 +92,40 @@
     </main>
   </div>
 
-  <!-- Global Hex & Text Preview Modal -->
-  <div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-scrollable">
-      <div class="modal-content">
-        <div class="modal-header">
-          <div>
-            <h5 class="modal-title font-monospace text-white" id="previewModalLabel">Artifact Inspector</h5>
-            <div id="previewMeta" class="small text-muted">Loading artifact bytes...</div>
-          </div>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body p-0">
-          <div class="p-3 border-bottom d-flex gap-2 bg-dark">
-            <button class="btn btn-sm btn-outline-light active" id="btnViewHex" onclick="switchPreviewTab('hex')">Hex View</button>
-            <button class="btn btn-sm btn-outline-light" id="btnViewText" onclick="switchPreviewTab('text')">Text View</button>
-          </div>
-          <div id="previewHexContainer" class="p-3 font-mono small" style="background:#f4f4f2; overflow-x:auto; max-height:550px;">
-            <div class="text-muted">Loading hex dump...</div>
-          </div>
-          <div id="previewTextContainer" class="p-3 font-mono small d-none" style="background:#f4f4f2; overflow-x:auto; max-height:550px; white-space:pre-wrap;">
-            <div class="text-muted">Loading text preview...</div>
+  <!-- Accessible Artifact Hex & Text Preview Modal (Self-hosted) -->
+  <div class="modal-overlay" id="artifactPreviewModal" role="dialog" aria-modal="true" aria-labelledby="previewModalFilename" aria-hidden="true">
+    <div class="modal-window">
+      <div class="modal-header">
+        <div>
+          <h3 id="previewModalFilename" style="font-size: 1.1rem; margin: 0;">Artifact Inspector</h3>
+          <div id="previewModalMeta" style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--ink-muted); margin-top: 2px;">
+            Reading artifact bytes...
           </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-sm btn-secondary" data-close-modal aria-label="Close modal">&times;</button>
+      </div>
+
+      <div style="padding: 8px 16px; background: var(--bg-surface-subtle); border-bottom: 1px solid var(--border-hairline); display: flex; gap: 8px;">
+        <button type="button" id="tabHexBtn" class="btn btn-sm btn-primary" data-preview-tab="hex">Hex View</button>
+        <button type="button" id="tabTextBtn" class="btn btn-sm btn-secondary" data-preview-tab="text">Text View</button>
+      </div>
+
+      <div class="modal-body" style="padding: 12px; background: var(--bg-inset);">
+        <div id="previewHexDump" style="overflow-x: auto; max-height: 480px;">
+          <div style="color: var(--ink-muted); padding: 12px;">Loading hex dump...</div>
         </div>
+        <div id="previewTextContent" style="display: none; white-space: pre-wrap; font-family: var(--font-mono); font-size: 0.78rem; overflow-x: auto; max-height: 480px; padding: 8px; color: var(--ink-primary);">
+          Loading text view...
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-close-modal>Close</button>
       </div>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    // Copy helper
-    function copyHash(text, btn) {
-      navigator.clipboard.writeText(text).then(() => {
-        const original = btn.innerText;
-        btn.innerText = 'Copied!';
-        btn.style.color = '#10b981';
-        setTimeout(() => {
-          btn.innerText = original;
-          btn.style.color = '';
-        }, 1500);
-      });
-    }
-
-    // In-place evidence verify
-    function verifyEvidenceInPlace(evidenceId, csrfToken, btn) {
-      const originalText = btn.innerHTML;
-      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Verifying...';
-      btn.disabled = true;
-
-      fetch(`/evidence/${evidenceId}/verify`, {
-        method: 'POST',
-        headers: {
-          'X-CSRFToken': csrfToken,
-          'Content-Type': 'application/json'
-        }
-      })
-      .then(res => res.json().then(data => ({ status: res.status, data })))
-      .then(result => {
-        btn.disabled = false;
-        btn.innerHTML = originalText;
-        const badge = document.getElementById(`status-badge-${evidenceId}`);
-        if (result.status === 200) {
-          if (badge) {
-            badge.className = 'badge-status badge-verified';
-            badge.innerText = 'Verified in storage';
-          }
-          alert('✓ Integrity Verified: SHA-256 matches baseline perfectly.');
-        } else {
-          if (badge) {
-            badge.className = 'badge-status badge-danger';
-            badge.innerText = 'Integrity failure';
-          }
-          alert('⚠ WARNING: Integrity Violation! File hash differs from baseline.');
-        }
-      })
-      .catch(err => {
-        btn.disabled = false;
-        btn.innerHTML = originalText;
-        alert('Verification request failed.');
-      });
-    }
-
-    // In-place preview artifact
-    let currentPreviewData = null;
-    function openPreviewModal(evidenceId) {
-      const modal = new bootstrap.Modal(document.getElementById('previewModal'));
-      modal.show();
-
-      document.getElementById('previewModalLabel').innerText = `Artifact Inspector (#${evidenceId})`;
-      document.getElementById('previewMeta').innerText = 'Reading artifact bytes from storage...';
-      document.getElementById('previewHexContainer').innerHTML = '<div class="text-muted">Loading hex dump...</div>';
-      document.getElementById('previewTextContainer').innerHTML = '<div class="text-muted">Loading text...</div>';
-
-      fetch(`/evidence/${evidenceId}/preview`)
-        .then(res => res.json())
-        .then(data => {
-          currentPreviewData = data;
-          document.getElementById('previewModalLabel').innerText = `Artifact: ${data.filename}`;
-          document.getElementById('previewMeta').innerText = `Total Size: ${data.total_size} bytes | Inspected: ${data.preview_bytes} bytes | SHA-256: ${data.sha256}`;
-
-          // Build Hex Dump
-          let hexHtml = '<table class="table table-borderless table-sm m-0 text-white font-mono" style="font-size:0.78rem;">';
-          data.hex_lines.forEach(row => {
-            hexHtml += `<tr><td class="text-secondary pe-3">${row.offset}</td><td class="pe-4">${row.hex}</td><td class="text-slate-300">${row.ascii}</td></tr>`;
-          });
-          hexHtml += '</table>';
-          document.getElementById('previewHexContainer').innerHTML = hexHtml;
-
-          // Build Text View
-          if (data.is_text) {
-            document.getElementById('previewTextContainer').innerText = data.text_preview;
-          } else {
-            document.getElementById('previewTextContainer').innerHTML = '<div class="text-warning">Binary artifact detected. Displaying hex dump only.</div>';
-          }
-        })
-        .catch(err => {
-          document.getElementById('previewHexContainer').innerText = 'Failed to load artifact bytes.';
-        });
-    }
-
-    function switchPreviewTab(tab) {
-      const hexBtn = document.getElementById('btnViewHex');
-      const textBtn = document.getElementById('btnViewText');
-      const hexCont = document.getElementById('previewHexContainer');
-      const textCont = document.getElementById('previewTextContainer');
-
-      if (tab === 'hex') {
-        hexBtn.classList.add('active');
-        textBtn.classList.remove('active');
-        hexCont.classList.remove('d-none');
-        textCont.classList.add('d-none');
-      } else {
-        textBtn.classList.add('active');
-        hexBtn.classList.remove('active');
-        textCont.classList.remove('d-none');
-        hexCont.classList.add('d-none');
-      }
-    }
-  </script>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  {% block scripts %}{% endblock %}
 </body>
 </html>

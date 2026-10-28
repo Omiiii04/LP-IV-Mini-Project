@@ -1,0 +1,27 @@
+DIGITAL FORENSICS TOOLKIT - INVESTIGATION NOTES
+Case Reference: DFT-2026-CHIMERA
+Investigator: Senior Forensic Lead Dr. Elena Rostova
+Date of Acquisition: 2026-10-12 08:30:00 UTC
+
+Scenario Summary:
+At 08:15 UTC, the perimeter intrusion detection system alerted on anomalous egress traffic
+emanating from internal workstation WS-FINANCE-04 (IP: 192.168.1.105) towards an external host
+at 198.51.100.44:8443. The workstation was immediately isolated from the local VLAN.
+
+Evidence Preservation Ledger:
+1. Physical memory and swap files captured via live triage kit.
+2. Web server access log (nginx_access.log) extracted from staging gateway.
+3. System authentication log (auth.log) preserved from central rsyslog repository.
+4. Hard drive sector stream acquired as disk image (workstation_dump.dd) with write-blocker attached.
+
+Initial Triage Observations:
+- Repeated SSH authentication failures observed prior to a successful public key login.
+- Multiple HTTP path traversal attempts detected targeting Linux and Windows system files.
+- SQL injection syntax identified in application authentication endpoints.
+- Disk image analysis reveals MBR partition layout with active boot partition.
+
+Chain of Custody Record:
+- Relinquished by: Network Operations Center (NOC)
+- Received by: Dr. Elena Rostova (Forensic Evidence Locker Vault A)
+- Method of Transfer: Hand-delivered on sealed, encrypted external NVMe drive
+- Hash Verification Status: Multi-hash cryptographic verification (SHA-256, SHA-1, MD5) initiated.

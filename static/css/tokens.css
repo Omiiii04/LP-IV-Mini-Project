@@ -1,0 +1,152 @@
+/* Digital Forensics Toolkit · Design Tokens
+   Laboratory Ledger Aesthetic — Warm Paper & Ink
+   Light & Dark via prefers-color-scheme
+*/
+
+:root {
+  /* Color Palette — Warm Paper / Ink */
+  --bg-app: #f3f0e8;
+  --bg-surface: #ffffff;
+  --bg-surface-subtle: #f8f6f0;
+  --bg-surface-elevated: #ffffff;
+  --bg-muted: #ebe7dc;
+  --bg-inset: #e8e4d8;
+
+  --ink-primary: #15171a;
+  --ink-secondary: #4a4e54;
+  --ink-muted: #72777f;
+  --ink-faint: #9ea3ac;
+  --ink-inverse: #ffffff;
+
+  /* Hairline Rules instead of card shadows */
+  --border-hairline: #dcd7cb;
+  --border-strong: #b8b2a2;
+  --border-focus: #15171a;
+
+  /* Primary Signal Color — Vermilion for flags / failures */
+  --signal-vermilion: #c8341b;
+  --signal-vermilion-subtle: #faebe8;
+  --signal-vermilion-strong: #9e230e;
+
+  /* Colorblind-Safe Semantic Severity (WCAG AA Contrast) */
+  --severity-critical-bg: #faebe8;
+  --severity-critical-text: #9e230e;
+  --severity-critical-border: #f0a395;
+
+  --severity-high-bg: #fdf2e9;
+  --severity-high-text: #a04000;
+  --severity-high-border: #f5cba7;
+
+  --severity-medium-bg: #fef9e7;
+  --severity-medium-text: #8c6b00;
+  --severity-medium-border: #f9e79f;
+
+  --severity-low-bg: #edf7ed;
+  --severity-low-text: #1e6b24;
+  --severity-low-border: #b7e4b9;
+
+  --severity-info-bg: #eaf2f8;
+  --severity-info-text: #1b4f72;
+  --severity-info-border: #aed6f1;
+
+  /* Status Colors */
+  --status-verified-bg: #edf7ed;
+  --status-verified-text: #1e6b24;
+  --status-verified-border: #82c785;
+
+  --status-failed-bg: #faebe8;
+  --status-failed-text: #9e230e;
+  --status-failed-border: #e88674;
+
+  --status-unverified-bg: #f2f2ef;
+  --status-unverified-text: #595959;
+  --status-unverified-border: #cfcfcb;
+
+  /* Typography */
+  --font-display: 'IBM Plex Serif', Georgia, serif;
+  --font-ui: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'SF Mono', Consolas, Menlo, monospace;
+
+  /* Transitions & Motion */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --duration-instant: 100ms;
+  --duration-short: 150ms;
+  --duration-normal: 220ms;
+
+  /* Spacing */
+  --space-2xs: 2px;
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+
+  /* Geometry */
+  --radius-sm: 3px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-full: 9999px;
+  --shadow-none: none;
+  --shadow-popover: 0 4px 16px rgba(21, 23, 26, 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-app: #121417;
+    --bg-surface: #1a1d22;
+    --bg-surface-subtle: #20242a;
+    --bg-surface-elevated: #242930;
+    --bg-muted: #282d36;
+    --bg-inset: #15181c;
+
+    --ink-primary: #ecefe9;
+    --ink-secondary: #b5bbc3;
+    --ink-muted: #858c97;
+    --ink-faint: #5a626d;
+    --ink-inverse: #121417;
+
+    --border-hairline: #2b303a;
+    --border-strong: #3f4756;
+    --border-focus: #ecefe9;
+
+    --signal-vermilion: #e04a2f;
+    --signal-vermilion-subtle: #3a1c17;
+    --signal-vermilion-strong: #f77861;
+
+    --severity-critical-bg: #381a17;
+    --severity-critical-text: #ff8e7b;
+    --severity-critical-border: #632c25;
+
+    --severity-high-bg: #382413;
+    --severity-high-text: #f5a65b;
+    --severity-high-border: #603a1b;
+
+    --severity-medium-bg: #332d12;
+    --severity-medium-text: #f0cf65;
+    --severity-medium-border: #5a4f1a;
+
+    --severity-low-bg: #142e18;
+    --severity-low-text: #82d889;
+    --severity-low-border: #1f4f26;
+
+    --severity-info-bg: #142838;
+    --severity-info-text: #7fc3f0;
+    --severity-info-border: #1d405a;
+
+    --status-verified-bg: #142e18;
+    --status-verified-text: #82d889;
+    --status-verified-border: #1f4f26;
+
+    --status-failed-bg: #381a17;
+    --status-failed-text: #ff8e7b;
+    --status-failed-border: #632c25;
+
+    --status-unverified-bg: #20242a;
+    --status-unverified-text: #9fa6b2;
+    --status-unverified-border: #323842;
+
+    --shadow-popover: 0 6px 24px rgba(0, 0, 0, 0.45);
+  }
+}

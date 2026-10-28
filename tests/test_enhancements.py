@@ -1,13 +1,13 @@
 import io
 import re
 import struct
-import pytest
+
 from extensions import db
-from models import Case, Evidence, Activity
-from services.hashing import multi_hash_file
+from models import Activity, Case, Evidence
 from services.disk_image_analyzer import examine
+from services.hashing import multi_hash_file
 from services.log_analyzer import analyze_log
-from services.report_generator import pdf_bytes, csv_bytes
+from services.report_generator import csv_bytes, pdf_bytes
 
 
 def _csrf(client):
@@ -73,8 +73,13 @@ def test_in_place_evidence_verification(app, client):
 
     # Tamper with the evidence file
     with app.app_context():
+        from pathlib import Path
+
         evidence_item = db.session.get(Evidence, item_id)
-        with open(evidence_item.source, "wb") as f:
+        target = Path(evidence_item.source)
+        if not target.is_absolute():
+            target = Path(app.config["STORAGE_ROOT"]) / target
+        with open(target, "wb") as f:
             f.write(b"tampered content")
 
     # Test failed in-place verification
@@ -132,7 +137,7 @@ def test_native_mbr_partition_inspector(tmp_path):
     # Partition entry 1 at offset 446 (0x1BE)
     # boot_flag=0x80 (active), start_chs=(0,1,1), part_type=0x07 (NTFS), end_chs=(0,1,1), start_lba=2048, num_sectors=65536
     part_entry = struct.pack("<BBBBBBBBII", 0x80, 0, 1, 1, 0x07, 0, 1, 1, 2048, 65536)
-    mbr_data[446:446 + 16] = part_entry
+    mbr_data[446 : 446 + 16] = part_entry
     img.write_bytes(bytes(mbr_data))
 
     res = examine(img)
@@ -148,7 +153,11 @@ def test_native_mbr_partition_inspector(tmp_path):
 
 def test_multipage_pdf_generation_and_unicode_safety(app):
     with app.app_context():
-        case = Case(title="Rapport d'Enquête Française & 证据", investigator="Agent Müller", description="Complex Case with many items")
+        case = Case(
+            title="Rapport d'Enquête Française & 证据",
+            investigator="Agent Müller",
+            description="Complex Case with many items",
+        )
         db.session.add(case)
         db.session.commit()
         case_id = case.id
@@ -199,3 +208,94 @@ def test_expanded_log_security_patterns(tmp_path):
     assert any("Directory traversal" in r for r in reasons)
     assert any("SQL" in r for r in reasons)
     assert any("failed login" in r for r in reasons)
+
+
+def test_same_named_files_get_independent_statuses(app, client):
+    token = _csrf(client)
+    client.post("/cases", data={"title": "Multi Evidence Same Name", "investigator": "Examiner", "csrf_token": token})
+
+    with app.app_context():
+        case = Case.query.one()
+        case_id = case.id
+
+    # Upload two distinct files with the exact same filename
+    client.post(
+        f"/cases/{case_id}/evidence",
+        data={"file": (io.BytesIO(b"content of file one"), "same_name.log"), "csrf_token": token},
+        content_type="multipart/form-data",
+    )
+    client.post(
+        f"/cases/{case_id}/evidence",
+        data={"file": (io.BytesIO(b"content of file two"), "same_name.log"), "csrf_token": token},
+        content_type="multipart/form-data",
+    )
+
+    with app.app_context():
+        items = Evidence.query.filter_by(case_id=case_id).order_by(Evidence.id.asc()).all()
+        assert len(items) == 2
+        id1, id2 = items[0].id, items[1].id
+        assert items[0].last_verified_ok is None
+        assert items[1].last_verified_ok is None
+
+    # Verify ONLY item 1
+    res1 = client.post(f"/evidence/{id1}/verify", headers={"X-CSRFToken": token})
+    assert res1.status_code == 200
+
+    with app.app_context():
+        i1 = db.session.get(Evidence, id1)
+        i2 = db.session.get(Evidence, id2)
+        assert i1.last_verified_ok is True
+        assert i1.last_verified_at is not None
+        # Item 2 must remain UNVERIFIED even though it has the exact same filename
+        assert i2.last_verified_ok is None
+        assert i2.last_verified_at is None
+
+    # Tamper ONLY item 2 on disk
+    with app.app_context():
+        from pathlib import Path
+
+        i2 = db.session.get(Evidence, id2)
+        target = Path(i2.source)
+        if not target.is_absolute():
+            target = Path(app.config["STORAGE_ROOT"]) / target
+        with open(target, "wb") as f:
+            f.write(b"tampered content for file 2")
+
+    # Verify item 2 -> fails
+    res2 = client.post(f"/evidence/{id2}/verify", headers={"X-CSRFToken": token})
+    assert res2.status_code == 409
+
+    with app.app_context():
+        i1 = db.session.get(Evidence, id1)
+        i2 = db.session.get(Evidence, id2)
+        assert i1.last_verified_ok is True
+        assert i2.last_verified_ok is False
+
+
+def test_download_does_not_mean_verified(app, client):
+    token = _csrf(client)
+    client.post("/cases", data={"title": "Download Status Case", "investigator": "Examiner", "csrf_token": token})
+
+    with app.app_context():
+        case = Case.query.one()
+        case_id = case.id
+
+    client.post(
+        f"/cases/{case_id}/evidence",
+        data={"file": (io.BytesIO(b"pristine content"), "download_test.txt"), "csrf_token": token},
+        content_type="multipart/form-data",
+    )
+
+    with app.app_context():
+        item = Evidence.query.one()
+        item_id = item.id
+        assert item.last_verified_ok is None
+
+    # Download the file
+    dl_res = client.get(f"/evidence/{item_id}/download")
+    assert dl_res.status_code == 200
+
+    # Verification status must NOT be set to Verified just because it was downloaded
+    with app.app_context():
+        item = db.session.get(Evidence, item_id)
+        assert item.last_verified_ok is None

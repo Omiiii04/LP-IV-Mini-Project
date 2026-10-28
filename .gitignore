@@ -56,8 +56,9 @@ cover/
 *.mo
 *.pot
 
-# Django stuff:
-*.log
+# Runtime logs (scoped to prevent ignoring fixture files)
+/instance/*.log
+/logs-runtime/
 local_settings.py
 db.sqlite3
 db.sqlite3-journal

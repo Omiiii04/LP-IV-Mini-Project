@@ -1,0 +1,16 @@
+2026-10-12 08:00:01 INFO [systemd] Started OpenBSD Secure Shell server.
+2026-10-12 08:00:15 INFO [sshd] Server listening on 0.0.0.0 port 22.
+2026-10-12 08:10:02 INFO [cron] (root) CMD (/usr/local/bin/log_rotation.sh)
+2026-10-12 08:12:10 WARNING [sshd] failed login for user root from 192.168.1.105 port 49201 ssh2
+2026-10-12 08:12:14 WARNING [sshd] failed login for user root from 192.168.1.105 port 49208 ssh2
+2026-10-12 08:12:19 WARNING [sshd] failed login for user admin from 192.168.1.105 port 49215 ssh2
+2026-10-12 08:12:25 WARNING [sshd] failed login for user postgres from 192.168.1.105 port 49222 ssh2
+2026-10-12 08:15:01 INFO [sshd] Connection closed by 192.168.1.105 port 49222 [preauth]
+2026-10-12 08:20:05 WARNING [sshd] failed login for user oracle from 203.0.113.45 port 55100 ssh2
+2026-10-12 08:20:09 WARNING [sshd] failed login for user test from 203.0.113.45 port 55106 ssh2
+2026-10-12 08:20:14 WARNING [sshd] failed login for user deploy from 203.0.113.45 port 55112 ssh2
+2026-10-12 08:20:20 INFO [sshd] Accepted publickey for deploy from 203.0.113.45 port 55118 ssh2
+2026-10-12 08:20:22 INFO [systemd-logind] New session 42 of user deploy.
+2026-10-12 08:22:15 CRITICAL [kernel] sudo su root execution detected: tty=/dev/pts/0 user=deploy
+2026-10-12 08:30:00 INFO [sshd] Received disconnect from 203.0.113.45 port 55118: 11: Closed by user
+2026-10-12 08:30:01 INFO [systemd-logind] Session 42 of user deploy logged out.

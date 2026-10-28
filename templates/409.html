@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}409 · Integrity Conflict · DFT{% endblock %}
+{% block content %}
+<div class="empty-state" style="max-width: 600px; margin: 40px auto; text-align: left; background: var(--bg-surface); border: 1px solid var(--border-hairline); border-left: 4px solid var(--signal-vermilion);">
+  <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--signal-vermilion); font-weight: 700; margin-bottom: 8px;">
+    ERROR 409 · INTEGRITY VIOLATION CONFLICT
+  </div>
+  <h2 style="margin-bottom: 12px; font-size: 1.4rem;">Evidence Integrity Violation &amp; Hash Mismatch</h2>
+  <p style="color: var(--ink-secondary); font-size: 0.9rem; line-height: 1.5; margin-bottom: 20px;">
+    Integrity violation detected: cryptographic verification identified a hash mismatch between the stored bitstream and the registered digest baseline. {{ error_message or "" }}
+  </p>
+  <div style="display: flex; gap: 8px;">
+    <a href="{{ url_for('evidence_index') }}" class="btn btn-signal btn-sm">Inspect Evidence Ledger</a>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-sm">Dashboard</a>
+  </div>
+</div>
+{% endblock %}
