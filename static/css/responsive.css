@@ -1,0 +1,382 @@
+/* Digital Forensics Toolkit · Workspace responsive refinements
+   Loaded after the shared component styles so mobile rules stay predictable.
+*/
+
+.top-bar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: clamp(16px, 3vw, 32px);
+  margin: 28px 0 22px;
+  min-width: 0;
+}
+
+.top-bar > :first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 820px;
+}
+
+.top-bar > :last-child {
+  flex: 0 0 auto;
+}
+
+.page-title {
+  margin: 6px 0 8px;
+  font-size: clamp(1.65rem, 2.7vw, 2.25rem);
+  line-height: 1.12;
+  overflow-wrap: anywhere;
+}
+
+.muted {
+  max-width: 72ch;
+  color: var(--ink-muted);
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+.panel {
+  min-width: 0;
+  max-width: 100%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-sm);
+}
+
+.app-main,
+.app-main > *,
+.dashboard-grid,
+.case-record-grid,
+.case-record-main,
+.case-record-aside {
+  min-width: 0;
+}
+
+.table-container,
+.ledger-table-container {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-forensic,
+.ledger-table {
+  min-width: 620px;
+}
+
+.form-input,
+.form-control,
+.form-select,
+input,
+select,
+textarea {
+  max-width: 100%;
+}
+
+.modal-window {
+  min-width: 0;
+}
+
+@media (max-width: 960px) {
+  .top-bar {
+    flex-wrap: wrap;
+  }
+
+  .top-bar > :last-child {
+    flex: 1 1 100%;
+  }
+
+  .dashboard-actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  .app-main {
+    padding: 18px 14px calc(120px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .top-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    margin: 18px 0 16px;
+  }
+
+  .top-bar > :first-child,
+  .top-bar > :last-child {
+    width: 100%;
+    max-width: none;
+  }
+
+  .page-title {
+    font-size: clamp(1.5rem, 7vw, 1.9rem);
+    line-height: 1.12;
+  }
+
+  .top-bar .dashboard-actions,
+  .top-bar > :last-child {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+
+  .top-bar .dashboard-actions > *,
+  .top-bar > :last-child > .btn {
+    flex: 1 1 145px;
+    min-width: 0;
+  }
+
+  .top-bar .dashboard-actions form {
+    flex: 1 1 145px;
+    min-width: 0;
+  }
+
+  .top-bar .dashboard-actions form .btn,
+  .top-bar > :last-child > .btn {
+    width: 100%;
+  }
+
+  .panel {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .table-container,
+  .ledger-table-container {
+    margin-right: 0;
+    border-radius: var(--radius-sm);
+    scrollbar-width: thin;
+  }
+
+  .table-forensic,
+  .ledger-table {
+    min-width: 640px;
+  }
+
+  .case-heading {
+    flex-direction: column;
+    gap: 12px;
+    margin: 8px 0 16px;
+  }
+
+  .case-heading-copy,
+  .case-heading-actions {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .case-heading-actions {
+    justify-content: flex-start;
+  }
+
+  .case-heading-actions form {
+    flex: 1 1 160px;
+    min-width: 0;
+  }
+
+  .case-heading-actions .form-input {
+    width: 100%;
+  }
+
+  .case-toolbar {
+    align-items: stretch;
+    gap: 6px;
+    padding: 8px;
+  }
+
+  .case-toolbar > span {
+    flex-basis: 100%;
+  }
+
+  .case-toolbar .btn {
+    flex: 1 1 110px;
+    min-height: 40px;
+  }
+
+  .case-section-nav {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .case-section-nav a {
+    flex: 0 0 auto;
+    min-height: 40px;
+  }
+
+  .case-metadata {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .case-metadata > div {
+    min-width: 0;
+    padding: 10px;
+  }
+
+  .case-record-grid,
+  .case-record-aside {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .record-panel {
+    padding: 12px;
+  }
+
+  .record-panel-heading {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .record-count {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .evidence-intake,
+  .log-intake {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .evidence-intake > div,
+  .log-intake > div {
+    width: 100%;
+    margin-right: 0;
+  }
+
+  .evidence-intake input[type="file"],
+  .log-intake input[type="file"],
+  .dropzone-file-input {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    font-size: 0.75rem;
+  }
+
+  .evidence-intake .btn,
+  .log-intake .btn {
+    width: 100%;
+    min-height: 42px;
+  }
+
+  .table-actions {
+    justify-content: flex-start;
+  }
+
+  .finding-list li {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 5px 8px;
+  }
+
+  .finding-list li > span:nth-child(2) {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    overflow-wrap: anywhere;
+  }
+
+  .event-details li {
+    grid-template-columns: 30px minmax(0, 1fr);
+  }
+
+  .event-details li > b {
+    grid-column: 2;
+  }
+
+  .analysis-record-heading {
+    flex-wrap: wrap;
+  }
+
+  .analysis-record-heading > div {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .activity-ledger li {
+    grid-template-columns: 12px minmax(0, 1fr);
+  }
+
+  .activity-ledger time {
+    grid-column: 2;
+    text-align: left;
+    overflow-wrap: anywhere;
+  }
+
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 8px;
+  }
+
+  .modal-window {
+    width: 100%;
+    max-height: calc(100dvh - 16px);
+    border-radius: 10px 10px 4px 4px;
+  }
+
+  .modal-header {
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .modal-header > div {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .modal-body {
+    min-height: 0;
+    padding: 10px;
+  }
+
+  .modal-footer {
+    padding: 10px 12px;
+  }
+
+  .app-nav nav {
+    width: calc(100% - 20px);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+    padding: 5px;
+  }
+
+  .nav-links {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .nav-item a {
+    min-height: 54px;
+    font-size: 0.62rem;
+  }
+
+  .nav-item a span:not(.nav-icon) {
+    overflow-wrap: anywhere;
+  }
+
+  .app-main {
+    padding-bottom: calc(116px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .btn,
+  button,
+  select,
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea {
+    scroll-margin-bottom: 120px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .table-container,
+  .ledger-table-container {
+    scroll-behavior: auto;
+  }
+}
