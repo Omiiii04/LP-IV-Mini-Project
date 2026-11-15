@@ -13,8 +13,7 @@ from wtforms.validators import DataRequired
 
 from config import Config
 from extensions import csrf, db
-from models import Activity, Case, DiskImage, Evidence, LogAnalysis, Report, utcnow
-from services.disk_image_analyzer import examine
+from models import Activity, Case, Evidence, LogAnalysis, Report, utcnow
 from services.file_analyzer import metadata, preview_file
 from services.hashing import hashes_match
 from services.log_analyzer import analyze_log
@@ -82,13 +81,13 @@ def create_app(test_config=None):
                         conn.execute(text("ALTER TABLE report ADD COLUMN report_format VARCHAR(20) DEFAULT 'json'"))
                     if "sha256" not in report_cols:
                         conn.execute(text("ALTER TABLE report ADD COLUMN sha256 VARCHAR(64)"))
-            if "disk_image" in inspector.get_table_names():
-                disk_cols = {col["name"] for col in inspector.get_columns("disk_image")}
-                with db.engine.begin() as conn:
-                    if "warnings_json" not in disk_cols:
-                        conn.execute(text("ALTER TABLE disk_image ADD COLUMN warnings_json TEXT DEFAULT '[]'"))
         except Exception:
             pass
+
+        if app.config.get("AUTO_SEED_DEMO") and Case.query.count() == 0:
+            from services.seed import seed_demo_data
+
+            seed_demo_data(app, reset=False)
 
     # --- Storage & Path Helpers (Bug 5: Never leak absolute server paths) ---
     def resolve_storage_path(stored_source: str) -> Path:
@@ -210,6 +209,10 @@ def create_app(test_config=None):
         return {"status": "ok"}
 
     @app.get("/")
+    def landing():
+        return render_template("landing.html")
+
+    @app.get("/workspace")
     def dashboard():
         from datetime import timedelta
 
@@ -338,21 +341,6 @@ def create_app(test_config=None):
         pagination = query.order_by(LogAnalysis.id.desc()).paginate(page=page, per_page=15, error_out=False)
         return render_template("logs.html", pagination=pagination, analyses=pagination.items, q=q)
 
-    @app.get("/disk-images")
-    def disk_images_index():
-        images = DiskImage.query.order_by(DiskImage.created_at.desc()).all()
-        for img in images:
-            try:
-                img.results = json.loads(img.results_json)
-            except Exception:
-                img.results = {}
-        return render_template(
-            "disk_images.html",
-            images=images,
-            cases=Case.query.order_by(Case.title).all(),
-            max_limit_mb=app.config["MAX_DISK_IMAGE_CONTENT_LENGTH"] // (1024 * 1024),
-        )
-
     @app.get("/reports")
     def reports_index():
         return render_template("reports.html", cases=Case.query.order_by(Case.title).all())
@@ -388,11 +376,6 @@ def create_app(test_config=None):
                 analysis.findings = json.loads(analysis.findings_json)
             except Exception:
                 analysis.findings = {}
-        for img in case.disk_images:
-            try:
-                img.results = json.loads(img.results_json)
-            except Exception:
-                img.results = {}
         reports = Report.query.filter_by(case_id=case.id).order_by(Report.generated_at.desc()).all()
         activities = Activity.query.filter_by(case_id=case.id).order_by(Activity.created_at.desc()).all()
         return render_template(
@@ -403,7 +386,6 @@ def create_app(test_config=None):
             activities=activities,
             evidence_limit_mb=app.config["MAX_EVIDENCE_CONTENT_LENGTH"] // (1024 * 1024),
             log_limit_mb=app.config["MAX_LOG_CONTENT_LENGTH"] // (1024 * 1024),
-            disk_limit_mb=app.config["MAX_DISK_IMAGE_CONTENT_LENGTH"] // (1024 * 1024),
         )
 
     @app.post("/cases/<int:case_id>/status")
@@ -655,57 +637,6 @@ def create_app(test_config=None):
             headers={"Content-Disposition": f"attachment; filename=case-{case_id}.pdf"},
         )
 
-    @app.post("/disk-images")
-    def disk_image():
-        # Bug 2: Return 400 on empty / invalid upload, never 500
-        uploaded = request.files.get("file")
-        if not uploaded or not uploaded.filename:
-            abort(400, "Disk image file is required")
-
-        case_id = request.form.get("case_id", type=int)
-        if case_id is None or db.session.get(Case, case_id) is None:
-            abort(400, "A valid case ID is required")
-
-        try:
-            filename, rel_path, target = save_upload(
-                uploaded,
-                "images",
-                app.config["ALLOWED_DISK_IMAGE_EXTENSIONS"],
-                max_size=app.config["MAX_DISK_IMAGE_CONTENT_LENGTH"],
-            )
-        except UploadError as ue:
-            abort(ue.status_code, ue.message)
-        except ValueError as error:
-            abort(400, str(error))
-
-        try:
-            result = examine(target)
-            item = DiskImage(
-                case_id=case_id,
-                filename=filename,
-                source=rel_path,  # Bug 5: relative path
-                sha256=result["sha256_before"],
-                analysis_status="hash_only",
-                results_json=json.dumps(result),
-                warnings_json=json.dumps(result.get("warnings", [])),
-            )
-            db.session.add(item)
-            db.session.add(Activity(case_id=case_id, action_type="disk_image_registered", result=filename))
-            db.session.commit()
-
-            is_form_submission = (
-                request.form.get("format") == "html" or request.headers.get("Sec-Fetch-Dest") == "document"
-            )
-            if is_form_submission:
-                flash(f"Disk image registered: {filename} ({result.get('scheme', 'Hash verified')})", "success")
-                return redirect(url_for("case_detail", case_id=case_id))
-
-            return jsonify({**result, "id": item.id, "sha256": item.sha256, "analysis_status": item.analysis_status})
-        except Exception:
-            db.session.rollback()
-            target.unlink(missing_ok=True)
-            abort(500, "Disk-image registration failed")
-
     # --- CLI & Demo Seed Commands ---
     @app.cli.command("seed")
     @click.option("--reset", is_flag=True, help="Wipe and rebuild demo database from scratch")
@@ -724,11 +655,11 @@ def create_app(test_config=None):
 
     @app.post("/seed-demo")
     def seed_demo_route():
-        """UI empty-state trigger to load synthetic demo cases."""
+        """Reload the complete synthetic showcase without removing user cases."""
         from services.seed import seed_demo_data
 
-        seed_demo_data(app, reset=False)
-        flash("Synthetic demo cases loaded successfully into the workspace.", "success")
+        seed_demo_data(app, reset=True)
+        flash("The full synthetic showcase has been reloaded.", "success")
         return redirect(url_for("dashboard"))
 
     return app

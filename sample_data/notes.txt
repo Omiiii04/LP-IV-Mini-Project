@@ -12,13 +12,13 @@ Evidence Preservation Ledger:
 1. Physical memory and swap files captured via live triage kit.
 2. Web server access log (nginx_access.log) extracted from staging gateway.
 3. System authentication log (auth.log) preserved from central rsyslog repository.
-4. Hard drive sector stream acquired as disk image (workstation_dump.dd) with write-blocker attached.
+4. Windows security event export (windows_security.csv) preserved from the endpoint review.
 
 Initial Triage Observations:
 - Repeated SSH authentication failures observed prior to a successful public key login.
 - Multiple HTTP path traversal attempts detected targeting Linux and Windows system files.
 - SQL injection syntax identified in application authentication endpoints.
-- Disk image analysis reveals MBR partition layout with active boot partition.
+- SHA-256 verification is required before the registered network triage file is downloaded.
 
 Chain of Custody Record:
 - Relinquished by: Network Operations Center (NOC)

@@ -9,9 +9,13 @@
     <h1 class="page-title">Forensic Work Queue</h1>
     <p class="muted mb-0">Prioritized evidence verification, flagged detection leads, and case activity ledger.</p>
   </div>
-  <div style="display: flex; gap: var(--space-sm);">
+  <div class="dashboard-actions">
+    <form action="{{ url_for('seed_demo_route') }}" method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn btn-secondary" type="submit">Reload full showcase</button>
+    </form>
     <a class="btn btn-primary" href="{{ url_for('new_case') }}">
-      + Register Case
+      Register case
     </a>
   </div>
 </div>
@@ -33,7 +37,7 @@
       <form action="{{ url_for('seed_demo_route') }}" method="post" style="display: inline;">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
         <button type="submit" class="btn btn-secondary">
-          Load Synthetic Demo Data
+          Reload Full Showcase
         </button>
       </form>
     </div>
@@ -100,7 +104,7 @@
   </div>
 
   <!-- Main Work Queue Split: Action Queues & Case Ledger -->
-  <div style="display: grid; grid-template-columns: 1fr 340px; gap: var(--space-xl); align-items: start;">
+  <div class="dashboard-grid">
     
     <!-- Left Column: Work Queues -->
     <div style="display: flex; flex-direction: column; gap: var(--space-xl);">

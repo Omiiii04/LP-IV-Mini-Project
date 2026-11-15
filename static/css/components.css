@@ -221,45 +221,6 @@
   color: var(--ink-primary);
 }
 
-/* Partition Map Proportional Bar */
-.partition-bar {
-  display: flex;
-  width: 100%;
-  height: 28px;
-  background: var(--bg-muted);
-  border: 1px solid var(--border-hairline);
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  margin-bottom: var(--space-md);
-}
-
-.partition-segment {
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--ink-primary);
-  border-right: 1px solid var(--border-hairline);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  padding: 0 4px;
-  transition-property: background-color;
-  transition-duration: var(--duration-short);
-}
-
-.partition-segment:hover {
-  filter: brightness(0.95);
-}
-
-.part-color-1 { background: #d7e3fc; }
-.part-color-2 { background: #d0f4de; }
-.part-color-3 { background: #fcf6bd; }
-.part-color-4 { background: #ffdfd3; }
-
 /* Chain of Custody Vertical Ledger */
 .timeline-ledger {
   list-style: none;
@@ -786,4 +747,3 @@
     color: #000000 !important;
   }
 }
-

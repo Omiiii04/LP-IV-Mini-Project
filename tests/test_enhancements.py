@@ -1,10 +1,8 @@
 import io
 import re
-import struct
 
 from extensions import db
 from models import Activity, Case, Evidence
-from services.disk_image_analyzer import examine
 from services.hashing import multi_hash_file
 from services.log_analyzer import analyze_log
 from services.report_generator import csv_bytes, pdf_bytes
@@ -126,29 +124,6 @@ def test_multi_hash_generation(tmp_path):
     assert "md5" in hashes and len(hashes["md5"]) == 32
     assert "sha1" in hashes and len(hashes["sha1"]) == 40
     assert "sha256" in hashes and len(hashes["sha256"]) == 64
-
-
-def test_native_mbr_partition_inspector(tmp_path):
-    img = tmp_path / "disk.img"
-    # Construct a synthetic 512-byte MBR sector with 0x55AA and one NTFS partition
-    mbr_data = bytearray(512)
-    # Boot signature at byte 510-511
-    mbr_data[510:512] = b"\x55\xaa"
-    # Partition entry 1 at offset 446 (0x1BE)
-    # boot_flag=0x80 (active), start_chs=(0,1,1), part_type=0x07 (NTFS), end_chs=(0,1,1), start_lba=2048, num_sectors=65536
-    part_entry = struct.pack("<BBBBBBBBII", 0x80, 0, 1, 1, 0x07, 0, 1, 1, 2048, 65536)
-    mbr_data[446 : 446 + 16] = part_entry
-    img.write_bytes(bytes(mbr_data))
-
-    res = examine(img)
-    assert res["scheme"] == "MBR (Master Boot Record)"
-    assert len(res["partitions"]) == 1
-    part = res["partitions"][0]
-    assert part["bootable"] is True
-    assert part["type_id"] == "0x07"
-    assert "NTFS" in part["type_name"]
-    assert part["start_lba"] == 2048
-    assert part["num_sectors"] == 65536
 
 
 def test_multipage_pdf_generation_and_unicode_safety(app):

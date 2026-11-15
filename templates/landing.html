@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="DFT is a single-user digital forensics workbench for evidence integrity, security log review, and case reporting.">
+  <title>DFT · Digital Forensics Toolkit</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
+</head>
+<body class="landing-page">
+  <a class="skip-link" href="#main-content">Skip to project information</a>
+  <header class="landing-nav">
+    <a class="landing-brand" href="{{ url_for('landing') }}" aria-label="DFT project overview">
+      <span class="landing-mark">D</span>
+      <span><strong>DFT</strong><small>Digital Forensics Toolkit</small></span>
+    </a>
+    <nav aria-label="Project sections">
+      <a href="#capabilities">Capabilities</a>
+      <a href="#workflow">Workflow</a>
+      <a href="#scope">Scope</a>
+    </nav>
+    <a class="landing-nav-cta" href="{{ url_for('dashboard') }}">Open workstation <span aria-hidden="true">↗</span></a>
+  </header>
+
+  <main id="main-content">
+    <section class="landing-hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <h1 id="hero-title">Collect carefully.<br><em>Keep the record.</em></h1>
+        <p class="hero-lede">DFT brings evidence intake, integrity checks, security log review, and case reports into one focused workspace.</p>
+        <div class="hero-actions">
+          <a class="button-primary" href="{{ url_for('dashboard') }}">Open the workstation <span aria-hidden="true">→</span></a>
+          <a class="button-quiet" href="#capabilities">See what it does</a>
+        </div>
+        <div class="hero-facts" aria-label="Project facts">
+          <div><span>01</span><strong>Single-user</strong><small>Local investigation prototype</small></div>
+          <div><span>02</span><strong>SHA-256</strong><small>Evidence integrity baseline</small></div>
+          <div><span>03</span><strong>Rule-based</strong><small>Deterministic log review</small></div>
+        </div>
+      </div>
+
+      <figure class="hero-screen reveal" aria-labelledby="screen-caption">
+        <div class="screen-toolbar">
+          <span class="screen-lights" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span>DFT / EVIDENCE INTAKE</span>
+          <span class="screen-live">ANIMATED EXAMPLE</span>
+        </div>
+        <div class="screen-image-wrap">
+          <div class="investigation-animation" role="img" aria-label="Illustrative animation of synthetic evidence intake and SHA-256 comparison. It does not process files.">
+            <div class="animation-meta"><span>DFT / INTEGRITY LEDGER</span><span>SYNTHETIC WALKTHROUGH</span></div>
+            <div class="animation-steps" aria-hidden="true">
+              <div class="animation-step step-intake">
+                <span class="step-label">01 / INTAKE</span>
+                <svg class="artifact-icon" viewBox="0 0 32 36" fill="none"><path d="M6 1.5h13l8 8V32a2.5 2.5 0 0 1-2.5 2.5h-18A2.5 2.5 0 0 1 4 32V4a2.5 2.5 0 0 1 2-2.5Z"/><path d="M19 2v8h8M9 17h13M9 22h13M9 27h8"/></svg>
+                <strong>security.log</strong>
+                <span class="step-note">Evidence copy</span>
+              </div>
+              <div class="animation-connector"><span class="flow-beam"></span><span>SHA-256</span></div>
+              <div class="animation-step step-verify">
+                <span class="step-label">02 / VERIFY</span>
+                <span class="verification-seal"><svg viewBox="0 0 24 24" fill="none"><path d="m5 12 4.5 4.5L19 7"/></svg></span>
+                <strong>Digest check</strong>
+                <span class="step-note">Baseline comparison</span>
+              </div>
+            </div>
+            <div class="integrity-readout" aria-hidden="true">
+              <div class="readout-heading"><span>INTEGRITY CHECK</span><span>SIMULATION</span></div>
+              <div class="readout-line"><span>REGISTERED BASELINE</span><span>RECORDED</span></div>
+              <div class="readout-line"><span>STORED COPY</span><span class="readout-match"><i></i>MATCH</span></div>
+            </div>
+            <div class="animation-footnote"><span></span>Illustrative only — no file is processed</div>
+          </div>
+        </div>
+        <figcaption id="screen-caption"><span>FIG. 01</span> Illustrative animation · synthetic workflow</figcaption>
+      </figure>
+    </section>
+
+    <section class="capabilities section-frame" id="capabilities" aria-labelledby="capabilities-title">
+      <div class="section-heading reveal">
+        <div class="section-index">01 / CAPABILITIES</div>
+        <h2 id="capabilities-title">A small set of accountable tools.</h2>
+        <p>Each result stays tied to a case, a source file, or a recorded action.</p>
+      </div>
+      <div class="capability-grid">
+        <article class="capability-card reveal">
+          <span class="card-number">TOOL 01</span><h3>Evidence ledger</h3>
+          <p>Register files with collector details and a streaming SHA-256 baseline. Verify stored bytes before download.</p>
+          <span class="card-foot">INTEGRITY · CHAIN OF CUSTODY</span>
+        </article>
+        <article class="capability-card reveal">
+          <span class="card-number">TOOL 02</span><h3>Log review</h3>
+          <p>Evaluate supported log lines against explicit rules for repeated failures, suspicious requests, and other leads.</p>
+          <span class="card-foot">DETERMINISTIC · REVIEWABLE RULES</span>
+        </article>
+        <article class="capability-card reveal">
+          <span class="card-number">TOOL 03</span><h3>Artifact inspection</h3>
+          <p>Preview bounded text and hex bytes from registered evidence without opening the original in a desktop editor.</p>
+          <span class="card-foot">READ-ONLY PREVIEW · BOUNDED BYTES</span>
+        </article>
+        <article class="capability-card reveal">
+          <span class="card-number">TOOL 04</span><h3>Case reporting</h3>
+          <p>Export case records and activity as PDF, JSON, or CSV, with a SHA-256 digest recorded for each generated report.</p>
+          <span class="card-foot">PDF · JSON · CSV</span>
+        </article>
+      </div>
+    </section>
+
+    <section class="workflow section-frame" id="workflow" aria-labelledby="workflow-title">
+      <div class="workflow-heading reveal">
+        <div class="section-index">02 / METHOD</div>
+        <h2 id="workflow-title">From intake to export.</h2>
+        <p>A straightforward sequence keeps the case record readable.</p>
+      </div>
+      <ol class="workflow-list">
+        <li class="reveal"><span>01</span><div><h3>Open a case</h3><p>Record its scope, investigator, and current status.</p></div></li>
+        <li class="reveal"><span>02</span><div><h3>Register evidence</h3><p>Store an isolated copy and record its SHA-256 baseline.</p></div></li>
+        <li class="reveal"><span>03</span><div><h3>Review artifacts</h3><p>Inspect bounded file previews and analyze supported logs.</p></div></li>
+        <li class="reveal"><span>04</span><div><h3>Export the record</h3><p>Generate a case report and keep its digest in the ledger.</p></div></li>
+      </ol>
+    </section>
+
+    <section class="scope section-frame" id="scope" aria-labelledby="scope-title">
+      <div class="scope-copy reveal">
+        <div class="section-index">03 / LIMITS &amp; CONTEXT</div>
+        <h2 id="scope-title">Built for triage and demonstration.</h2>
+        <p>DFT is an academic prototype. It has no user accounts or role controls. Log matches are investigative leads, not proof of malicious activity. Application-level hashes can detect changed stored files, but cannot protect the database and files from an administrator who can alter both.</p>
+      </div>
+      <div class="scope-spec reveal">
+        <div><span>APPLICATION</span><strong>Flask · Python</strong></div>
+        <div><span>CASE LEDGER</span><strong>SQLAlchemy · SQLite</strong></div>
+        <div><span>REPORTS</span><strong>ReportLab · self-hosted fonts</strong></div>
+        <div><span>INTERFACE</span><strong>Server-rendered · offline assets</strong></div>
+      </div>
+    </section>
+
+    <section class="landing-close" aria-labelledby="close-title">
+      <div class="section-index">READY FOR A WALKTHROUGH?</div>
+      <h2 id="close-title">Open the casework desk.</h2>
+      <p>Use the included synthetic records to explore the workflow without introducing real evidence.</p>
+      <div class="hero-actions">
+        <a class="button-primary" href="{{ url_for('dashboard') }}">Enter workspace <span aria-hidden="true">→</span></a>
+        <form action="{{ url_for('seed_demo_route') }}" method="post">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="button-quiet button-quiet-light" type="submit">Reload full synthetic showcase</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="landing-footer">
+    <a class="landing-brand" href="{{ url_for('landing') }}"><span class="landing-mark">D</span><span><strong>DFT</strong><small>Digital Forensics Toolkit</small></span></a>
+    <span>ACADEMIC PROTOTYPE · SINGLE-USER SCOPE</span>
+    <a href="{{ url_for('dashboard') }}">Workstation <span aria-hidden="true">↗</span></a>
+  </footer>
+</body>
+</html>

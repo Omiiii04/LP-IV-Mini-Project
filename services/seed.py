@@ -9,14 +9,12 @@ All files and logs are synthetic and sourced from sample_data/.
 """
 
 import json
-import shutil
 from datetime import timedelta
 from pathlib import Path
 from uuid import uuid4
 
 from extensions import db
-from models import Activity, Case, DiskImage, Evidence, LogAnalysis, Report, utcnow
-from services.disk_image_analyzer import examine
+from models import Activity, Case, Evidence, LogAnalysis, Report, utcnow
 from services.hashing import hash_bytes
 from services.log_analyzer import analyze_log
 from services.report_generator import csv_bytes, pdf_bytes, report_data
@@ -29,10 +27,8 @@ def seed_demo_data(app, reset: bool = False) -> dict:
     storage_root = Path(app.config["STORAGE_ROOT"]).resolve()
     storage_root.mkdir(parents=True, exist_ok=True)
     uploads_dir = storage_root / "uploads"
-    images_dir = storage_root / "images"
     reports_dir = storage_root / "reports"
     uploads_dir.mkdir(parents=True, exist_ok=True)
-    images_dir.mkdir(parents=True, exist_ok=True)
     reports_dir.mkdir(parents=True, exist_ok=True)
 
     with app.app_context():
@@ -47,9 +43,6 @@ def seed_demo_data(app, reset: bool = False) -> dict:
             for c in existing_demo_cases:
                 for ev in c.evidence:
                     p = storage_root / ev.source
-                    p.unlink(missing_ok=True)
-                for di in c.disk_images:
-                    p = storage_root / di.source
                     p.unlink(missing_ok=True)
                 db.session.delete(c)
             db.session.commit()
@@ -244,34 +237,6 @@ def seed_demo_data(app, reset: bool = False) -> dict:
                 )
             )
 
-        # Disk Image: mbr_fat.img
-        mbr_src = sample_data_dir / "mbr_fat.img"
-        if mbr_src.exists():
-            mbr_rel = f"images/{uuid4().hex}_mbr_fat.img"
-            mbr_dest = storage_root / mbr_rel
-            shutil.copy2(mbr_src, mbr_dest)
-            mbr_exam = examine(mbr_dest)
-            db.session.add(
-                DiskImage(
-                    case_id=case1.id,
-                    filename="workstation_mbr_dump.img",
-                    source=mbr_rel,
-                    sha256=mbr_exam["sha256_before"],
-                    analysis_status="hash_only",
-                    results_json=json.dumps(mbr_exam),
-                    warnings_json=json.dumps(mbr_exam.get("warnings", [])),
-                    created_at=base_time + timedelta(hours=7),
-                )
-            )
-            db.session.add(
-                Activity(
-                    case_id=case1.id,
-                    action_type="disk_image_registered",
-                    result=f"workstation_mbr_dump.img ({mbr_exam['scheme']}, FAT32 partition)",
-                    created_at=base_time + timedelta(hours=7),
-                )
-            )
-
         # Generate Reports for Case 1 (JSON, CSV, PDF)
         db.session.commit()
         data1 = report_data(case1)
@@ -321,13 +286,13 @@ def seed_demo_data(app, reset: bool = False) -> dict:
         )
 
         # -------------------------------------------------------------
-        # CASE 2: In Progress - Incident 2026-088 (GPT Ext4 Disk Image)
+        # CASE 2: In Progress - Incident 2026-088
         # -------------------------------------------------------------
         case2_time = utcnow() - timedelta(days=2)
         case2 = Case(
             title="Incident 2026-088 - Staging Gateway Infiltration",
             investigator="Marcus Vance",
-            description="Active examination of staging cluster gateway, GPT disk partitions, and baseline log analysis.",
+            description="Active examination of the staging cluster gateway and baseline log activity.",
             status="In Progress",
             created_at=case2_time,
         )
@@ -392,34 +357,6 @@ def seed_demo_data(app, reset: bool = False) -> dict:
                 )
             )
 
-        # Disk Image: gpt_ext4.img
-        gpt_src = sample_data_dir / "gpt_ext4.img"
-        if gpt_src.exists():
-            gpt_rel = f"images/{uuid4().hex}_gpt_ext4.img"
-            gpt_dest = storage_root / gpt_rel
-            shutil.copy2(gpt_src, gpt_dest)
-            gpt_exam = examine(gpt_dest)
-            db.session.add(
-                DiskImage(
-                    case_id=case2.id,
-                    filename="staging_server_gpt.img",
-                    source=gpt_rel,
-                    sha256=gpt_exam["sha256_before"],
-                    analysis_status="hash_only",
-                    results_json=json.dumps(gpt_exam),
-                    warnings_json=json.dumps(gpt_exam.get("warnings", [])),
-                    created_at=case2_time + timedelta(hours=3),
-                )
-            )
-            db.session.add(
-                Activity(
-                    case_id=case2.id,
-                    action_type="disk_image_registered",
-                    result=f"staging_server_gpt.img ({gpt_exam['scheme']}, Linux ext4 partition)",
-                    created_at=case2_time + timedelta(hours=3),
-                )
-            )
-
         # -------------------------------------------------------------
         # CASE 3: Closed - Audit 2026-Q3 (Decommission Verification)
         # -------------------------------------------------------------
@@ -442,18 +379,18 @@ def seed_demo_data(app, reset: bool = False) -> dict:
             )
         )
 
-        # Evidence: Raw flash bitstream
-        raw_src = sample_data_dir / "raw_unpartitioned.dd"
-        if raw_src.exists():
-            raw_bytes = raw_src.read_bytes()
-            raw_rel = f"uploads/{uuid4().hex}_raw_unpartitioned.dd"
-            (storage_root / raw_rel).write_bytes(raw_bytes)
-            raw_hash = hash_bytes(raw_bytes)["sha256"]
+        # Evidence: Windows security event export
+        windows_src = sample_data_dir / "windows_security.csv"
+        if windows_src.exists():
+            windows_bytes = windows_src.read_bytes()
+            windows_rel = f"uploads/{uuid4().hex}_windows_security.csv"
+            (storage_root / windows_rel).write_bytes(windows_bytes)
+            windows_hash = hash_bytes(windows_bytes)["sha256"]
             ev_raw = Evidence(
                 case_id=case3.id,
-                description="firmware_raw_stream.dd",
-                source=raw_rel,
-                sha256=raw_hash,
+                description="windows_security_export.csv",
+                source=windows_rel,
+                sha256=windows_hash,
                 investigator=case3.investigator,
                 collected_at=case3_time + timedelta(minutes=30),
                 examined_at=case3_time + timedelta(hours=2),
@@ -465,7 +402,7 @@ def seed_demo_data(app, reset: bool = False) -> dict:
                 Activity(
                     case_id=case3.id,
                     action_type="evidence_registered",
-                    result="firmware_raw_stream.dd",
+                    result="windows_security_export.csv",
                     created_at=case3_time + timedelta(minutes=30),
                 )
             )

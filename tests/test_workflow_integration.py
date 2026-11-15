@@ -91,19 +91,7 @@ def test_full_investigative_lifecycle(client, app, sample_data):
         )
     assert res_log.status_code == 200
 
-    # 8. Upload and Examine Disk Image
-    mbr_img = sample_data / "mbr_fat.img"
-    assert mbr_img.exists()
-    with open(mbr_img, "rb") as f:
-        res_img = client.post(
-            "/disk-images",
-            data={"case_id": str(case_id), "file": (f, "mbr_fat.img"), "csrf_token": token},
-            content_type="multipart/form-data",
-        )
-    assert res_img.status_code == 200
-    assert res_img.json["scheme"] == "MBR (Master Boot Record)"
-
-    # 9. Generate and Assert Reports (JSON, CSV, PDF)
+    # 8. Generate and Assert Reports (JSON, CSV, PDF)
     res_json = client.get(f"/reports/{case_id}.json")
     assert res_json.status_code == 200
     assert res_json.json["case"]["title"] == "Operation Wintermute - Full Audit Lifecycle"
@@ -135,9 +123,6 @@ def test_csrf_protection_on_all_post_routes(client, app):
 
     res_log = client.post("/cases/1/logs", data={"file": (io.BytesIO(b"log data"), "test.log")})
     assert res_log.status_code == 400
-
-    res_disk = client.post("/disk-images", data={"case_id": "1", "file": (io.BytesIO(b"disk"), "disk.dd")})
-    assert res_disk.status_code == 400
 
 
 def test_error_handlers_content_negotiation(client):

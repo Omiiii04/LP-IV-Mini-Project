@@ -10,7 +10,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 
 from extensions import db
-from models import Activity, Case, DiskImage, Evidence, LogAnalysis
+from models import Activity, Case, Evidence, LogAnalysis
 
 TOOL_METADATA = {
     "name": "Digital Forensics Toolkit (DFT)",
@@ -101,18 +101,6 @@ def report_data(case_or_id) -> dict:
             }
             for e in Evidence.query.filter_by(case_id=case_id).order_by(Evidence.collected_at.asc())
         ],
-        "disk_images": [
-            {
-                "id": i.id,
-                "filename": i.filename,
-                "storage_ref": _sanitize_path(i.source),
-                "sha256": i.sha256,
-                "analysis_status": i.analysis_status,
-                "results": json.loads(i.results_json) if i.results_json else {},
-                "created_at": i.created_at.isoformat() if i.created_at else "",
-            }
-            for i in DiskImage.query.filter_by(case_id=case_id).order_by(DiskImage.created_at.asc())
-        ],
         "logs": [
             {
                 "filename": a.filename,
@@ -161,11 +149,6 @@ def csv_bytes(case_id_or_data) -> bytes:
                 item.get("collected_at", ""),
             ]
         )
-    writer.writerow([])
-
-    writer.writerow(["disk_images", "ID", "Filename", "SHA-256", "Status"])
-    for item in data["disk_images"]:
-        writer.writerow(["disk_image", item["id"], item["filename"], item["sha256"], item["analysis_status"]])
     writer.writerow([])
 
     writer.writerow(["log_analyses", "Filename", "Events Processed", "Flagged Patterns", "Summary"])
@@ -297,33 +280,7 @@ def pdf_bytes(case_id_or_data) -> bytes:
             doc.drawString(74, y, f"SHA-256: {item['sha256']}")
             y -= 13
 
-    # Section 2: Disk Images
-    y -= 8
-    ensure_space(35)
-    doc.setFont(title_font, 11)
-    doc.setFillColorRGB(0.08, 0.09, 0.1)
-    doc.drawString(54, y, f"2. Disk Images ({len(data['disk_images'])} item(s))")
-    y -= 15
-
-    if not data["disk_images"]:
-        doc.setFont(body_font, 8.5)
-        doc.setFillColorRGB(0.45, 0.45, 0.45)
-        doc.drawString(64, y, "No raw disk images registered.")
-        y -= 16
-    else:
-        for idx, img in enumerate(data["disk_images"], 1):
-            ensure_space(24)
-            doc.setFont(body_font, 8.5)
-            doc.setFillColorRGB(0.1, 0.12, 0.15)
-            doc.drawString(64, y, _truncate_text(f"#{idx} {img['filename']} ({img['analysis_status']})"))
-            y -= 11
-
-            doc.setFont(mono_font, 7.5)
-            doc.setFillColorRGB(0.3, 0.33, 0.38)
-            doc.drawString(74, y, f"SHA-256: {img['sha256']}")
-            y -= 13
-
-    # Section 3: Log Analyses & Findings
+    # Section 2: Log Analyses & Findings
     y -= 8
     ensure_space(35)
     doc.setFont(title_font, 11)
@@ -358,7 +315,7 @@ def pdf_bytes(case_id_or_data) -> bytes:
                 doc.drawString(74, y, _truncate_text(f"• Lead: {finding.get('reason', '')}"))
                 y -= 11
 
-    # Section 4: Chain of Custody / Activity Trail
+    # Section 3: Chain of Custody / Activity Trail
     y -= 8
     ensure_space(35)
     doc.setFont(title_font, 11)

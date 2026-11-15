@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: digital-forensics-toolkit
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    disk:
+      name: dft-case-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        value: sqlite:////var/data/dft.sqlite3
+      - key: STORAGE_ROOT
+        value: /var/data/storage
+      - key: AUTO_SEED_DEMO
+        value: "true"

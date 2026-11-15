@@ -19,12 +19,11 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # Upload limits (configurable per route type)
-    MAX_CONTENT_LENGTH = int(os.getenv("MAX_CONTENT_LENGTH", str(2 * 1024 * 1024 * 1024)))  # 2 GB default
+    MAX_CONTENT_LENGTH = int(os.getenv("MAX_CONTENT_LENGTH", str(66 * 1024 * 1024)))
     MAX_EVIDENCE_CONTENT_LENGTH = int(os.getenv("MAX_EVIDENCE_CONTENT_LENGTH", str(64 * 1024 * 1024)))  # 64 MB
     MAX_LOG_CONTENT_LENGTH = int(os.getenv("MAX_LOG_CONTENT_LENGTH", str(32 * 1024 * 1024)))  # 32 MB
-    MAX_DISK_IMAGE_CONTENT_LENGTH = int(os.getenv("MAX_DISK_IMAGE_CONTENT_LENGTH", str(2 * 1024 * 1024 * 1024)))  # 2 GB
 
     STORAGE_ROOT = os.getenv("STORAGE_ROOT", str(Path("instance") / "storage"))
-    ALLOWED_EVIDENCE_EXTENSIONS = {".txt", ".log", ".csv", ".json", ".pdf", ".zip", ".doc", ".docx", ".dd", ".img"}
+    ALLOWED_EVIDENCE_EXTENSIONS = {".txt", ".log", ".csv", ".json", ".pdf", ".zip", ".doc", ".docx"}
     ALLOWED_LOG_EXTENSIONS = {".log", ".txt", ".csv"}
-    ALLOWED_DISK_IMAGE_EXTENSIONS = {".dd", ".img"}
+    AUTO_SEED_DEMO = os.getenv("AUTO_SEED_DEMO", "false").lower() == "true"

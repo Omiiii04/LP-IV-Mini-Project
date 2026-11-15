@@ -342,13 +342,13 @@
       window.location.href = '/evidence';
     } else if (keySequence === 'gd') {
       keySequence = '';
+      window.location.href = '/workspace';
+    } else if (keySequence === 'gh') {
+      keySequence = '';
       window.location.href = '/';
     } else if (keySequence === 'gl') {
       keySequence = '';
       window.location.href = '/logs';
-    } else if (keySequence === 'gi') {
-      keySequence = '';
-      window.location.href = '/disk-images';
     }
   });
 

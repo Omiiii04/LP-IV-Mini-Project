@@ -41,7 +41,7 @@
             {{ case.investigator }}
           </td>
           <td style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-muted);">
-            {{ case.evidence | length }} ev · {{ case.disk_images | length }} img · {{ case.log_analyses | length }} logs
+            {{ case.evidence | length }} evidence · {{ case.log_analyses | length }} logs
           </td>
           <td>
             {% if case.status == 'Open' %}

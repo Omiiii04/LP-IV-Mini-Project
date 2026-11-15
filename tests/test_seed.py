@@ -16,7 +16,6 @@ def test_seed_demo_data_populates_three_cases(app):
         assert c1.status == "Open"
         assert len(c1.evidence) >= 2
         assert len(c1.log_analyses) >= 2
-        assert len(c1.disk_images) >= 1
         assert len(c1.reports) >= 3
 
         # Verify deliberately tampered file
@@ -30,7 +29,6 @@ def test_seed_demo_data_populates_three_cases(app):
         c2 = Case.query.filter_by(title="Incident 2026-088 - Staging Gateway Infiltration").one()
         assert c2.status == "In Progress"
         assert len(c2.evidence) >= 1
-        assert len(c2.disk_images) >= 1
         clean_log = LogAnalysis.query.filter_by(case_id=c2.id).first()
         assert clean_log is not None
         assert clean_log.flagged_patterns == 0

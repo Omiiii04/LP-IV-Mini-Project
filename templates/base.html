@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+  {% block styles %}{% endblock %}
 </head>
 <body>
   <a href="#main-content" class="skip-link">Skip to main forensic workspace</a>
@@ -21,13 +22,19 @@
         </div>
       </a>
 
-      <nav aria-label="Main navigation" style="width: 100%;">
-        <div class="nav-section-title nav-label">Investigation Ledger</div>
+      <nav aria-label="Main navigation">
+        <div class="nav-section-title nav-label">Navigation</div>
         <ul class="nav-links">
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'landing' %}active{% endif %}" href="{{ url_for('landing') }}">
+              <span class="nav-icon nav-icon-index">01</span>
+              <span>Project brief</span>
+            </a>
+          </li>
           <li class="nav-item">
             <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">
               <svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-              <span>Dashboard</span>
+              <span>Work queue</span>
             </a>
           </li>
           <li class="nav-item">
@@ -46,12 +53,6 @@
             <a class="nav-link {% if request.endpoint == 'logs_index' %}active{% endif %}" href="{{ url_for('logs_index') }}">
               <svg class="nav-icon" viewBox="0 0 24 24"><line x1="21" y1="10" x2="3" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="21" y1="18" x2="3" y2="18"></line></svg>
               <span>Log Analysis</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link {% if request.endpoint == 'disk_images_index' %}active{% endif %}" href="{{ url_for('disk_images_index') }}">
-              <svg class="nav-icon" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
-              <span>Disk Images</span>
             </a>
           </li>
           <li class="nav-item">

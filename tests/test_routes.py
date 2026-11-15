@@ -12,7 +12,7 @@ def test_case_creation_and_dashboard(client):
     response = client.post("/cases", data={"title": "Laptop review", "investigator": "Analyst", "csrf_token": csrf})
     assert response.status_code == 302
     assert b"Laptop review" in client.get("/cases").data
-    assert b"Laptop review" in client.get("/").data
+    assert b"Laptop review" in client.get("/workspace").data
 
 
 def test_new_case_form_posts_to_case_creation_route(client):
@@ -157,49 +157,6 @@ def test_evidence_upload_rejects_empty_and_disallowed_files(client, app):
             content_type="multipart/form-data",
         )
         assert response.status_code == 400
-
-
-def test_disk_image_upload_empty_and_invalid_returns_400(client, app):
-    import io
-    import re
-
-    token = re.search(r'name="csrf_token" type="hidden" value="([^"]+)', client.get("/cases/new").data.decode()).group(
-        1
-    )
-    client.post("/cases", data={"title": "Incident", "investigator": "Analyst", "csrf_token": token})
-    with app.app_context():
-        from models import Case
-
-        case_id = Case.query.one().id
-
-    # 1. Empty disk image file upload (0 bytes) -> must return 400, never 500
-    res_empty = client.post(
-        "/disk-images",
-        data={"case_id": str(case_id), "file": (io.BytesIO(b""), "empty.img"), "csrf_token": token},
-        content_type="multipart/form-data",
-        headers={"Accept": "application/json"},
-    )
-    assert res_empty.status_code == 400
-    assert "error" in res_empty.json or "message" in res_empty.json
-
-    # 2. Invalid extension -> must return 400
-    res_bad_ext = client.post(
-        "/disk-images",
-        data={"case_id": str(case_id), "file": (io.BytesIO(b"test"), "bad.exe"), "csrf_token": token},
-        content_type="multipart/form-data",
-        headers={"Accept": "application/json"},
-    )
-    assert res_bad_ext.status_code == 400
-
-    # 3. HTML response when Accept is text/html
-    res_html = client.post(
-        "/disk-images",
-        data={"case_id": str(case_id), "file": (io.BytesIO(b""), "empty.img"), "csrf_token": token},
-        content_type="multipart/form-data",
-        headers={"Accept": "text/html"},
-    )
-    assert res_html.status_code == 400
-    assert b"Upload Error" in res_html.data or b"Bad Request" in res_html.data or b"empty" in res_html.data.lower()
 
 
 def test_refuse_to_start_in_production_with_default_secret():

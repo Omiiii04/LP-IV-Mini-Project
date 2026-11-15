@@ -1,4 +1,4 @@
-.PHONY: setup run test seed lint format check clean
+.PHONY: setup run test seed showcase lint format check clean
 
 PYTHON ?= python
 VENV_DIR ?= .venv
@@ -26,10 +26,12 @@ run:
 	$(FLASK_BIN) run --debug --port 5000
 
 test:
-	$(PYTEST_BIN) --cov=services --cov-report=term-missing
+	$(PYTEST_BIN) tests --cov=services --cov-report=term-missing
 
 seed:
 	$(FLASK_BIN) seed --reset
+
+showcase: test seed run
 
 lint:
 	$(RUFF_BIN) check .

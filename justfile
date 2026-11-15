@@ -9,10 +9,12 @@ run:
     flask run --debug --port 5000
 
 test:
-    pytest --cov=services --cov-report=term-missing
+    pytest tests --cov=services --cov-report=term-missing
 
 seed:
     flask seed --reset
+
+showcase: test seed run
 
 lint:
     ruff check .
