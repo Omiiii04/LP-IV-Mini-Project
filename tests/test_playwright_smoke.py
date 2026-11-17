@@ -84,12 +84,15 @@ def test_playwright_smoke_and_screenshots(smoke_server, tmp_path):
         assert page.locator("h1").is_visible()
         assert page.locator(".investigation-animation").get_attribute("role") == "img"
         assert page.locator(".flow-beam").is_visible()
-        assert page.locator(".hero-copy").evaluate("element => Number.parseFloat(getComputedStyle(element).opacity) > 0")
+        assert page.locator(".hero-copy").evaluate(
+            "element => Number.parseFloat(getComputedStyle(element).opacity) > 0"
+        )
         page.emulate_media(color_scheme="dark")
         assert page.locator("#hero-title").evaluate("element => getComputedStyle(element).color") == "rgb(27, 41, 36)"
-        assert page.locator("#capabilities-title").evaluate(
-            "element => getComputedStyle(element).color"
-        ) == "rgb(27, 41, 36)"
+        assert (
+            page.locator("#capabilities-title").evaluate("element => getComputedStyle(element).color")
+            == "rgb(27, 41, 36)"
+        )
         page.emulate_media(color_scheme="light")
         for width in (360, 768, 1280):
             page.set_viewport_size({"width": width, "height": 900})
@@ -120,7 +123,10 @@ def test_playwright_smoke_and_screenshots(smoke_server, tmp_path):
             if width <= 640:
                 mobile_nav = page.locator(".app-nav nav")
                 assert mobile_nav.evaluate("element => getComputedStyle(element).position") == "fixed"
-                assert float(mobile_nav.evaluate("element => getComputedStyle(element).borderRadius").replace("px", "")) >= 24
+                assert (
+                    float(mobile_nav.evaluate("element => getComputedStyle(element).borderRadius").replace("px", ""))
+                    >= 24
+                )
                 mobile_nav_box = mobile_nav.bounding_box()
                 assert mobile_nav_box["y"] > 900 - 120
                 assert page.locator(".nav-item a").count() == 6
@@ -131,7 +137,9 @@ def test_playwright_smoke_and_screenshots(smoke_server, tmp_path):
                 nav_box = page.locator(".app-nav").bounding_box()
                 assert nav_box["y"] == 0
                 assert nav_box["width"] >= width - 2
-                assert page.locator(".nav-links").evaluate("element => getComputedStyle(element).flexDirection") == "row"
+                assert (
+                    page.locator(".nav-links").evaluate("element => getComputedStyle(element).flexDirection") == "row"
+                )
             assert page.locator(".nav-item a").evaluate_all(
                 "elements => elements.every(element => element.getBoundingClientRect().right <= window.innerWidth + 1)"
             )
